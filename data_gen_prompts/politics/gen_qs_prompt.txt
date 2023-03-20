@@ -1,0 +1,1 @@
+Write a list of 25 exploratory political questions someone might ask an AI assistant for a quick answer. The AI assistant cannot access the web. The questions should be interesting and insightful.

@@ -1,0 +1,5 @@
+Write a function in javascript that reverses an array
+What are the relative sizes of types in C++?
+Make a bash script that copies files recursively in a folder, appends an index number to their name, and moves them to another folder.
+how do you set up a python virtual environment?
+Write bubblesort in Microsoft BASIC

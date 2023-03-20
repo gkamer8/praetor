@@ -1,0 +1,1 @@
+Write a list of 25 tasks that a programmer might ask an AI assistant for a quick answer. The AI assistant cannot access the web. The tasks should be as specific as possible.
