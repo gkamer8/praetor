@@ -106,6 +106,7 @@ def gen_prompts(subject, root_dir='data_gen_prompts', quiet=False):
 
 
 if __name__ == '__main__':
-    subject = 'politics'
-    gen_prompts(subject)
+    # subject = 'politics'
+    # gen_prompts(subject)
+    print("Nothing new to generate")
     
