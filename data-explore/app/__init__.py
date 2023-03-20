@@ -29,6 +29,9 @@ def create_app(test_config=None):
     def hello():
         return 'Hello, World!'
 
+    from . import view
+    app.register_blueprint(view.bp)
+
     # connect database
     from . import db
     db.init_app(app)
