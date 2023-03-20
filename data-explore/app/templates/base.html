@@ -1,0 +1,12 @@
+<!doctype html>
+<head>
+    <title>{% block title %}{% endblock %} - Praetor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {% block meta %}{% endblock %}
+</head>
+<nav>
+  <a href="/"><h1>Praetor</h1></a>
+</nav>
+<section class="content">
+  {% block content %}{% endblock %}
+</section>

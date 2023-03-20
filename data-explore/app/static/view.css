@@ -1,0 +1,16 @@
+
+.prompt, .completion {
+    padding: 1em;
+    background-color: #f0f0f0;
+    border: 1px solid #808080;
+}
+
+#add-completion {
+    display: none;
+    margin: 1em;
+}
+
+#add-completion textarea{
+    width: 50%;
+    height: 10em;
+}

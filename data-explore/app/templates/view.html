@@ -1,8 +1,59 @@
-<html>
-    <head>
+{% extends 'base.html' %}
 
-    </head>
-    <body>
-        It's time to view!
-    </body>
-</html>
+{% block title %}View{% endblock %}
+
+{% block meta %}
+<link rel="stylesheet" href="{{ url_for('static', filename='view.css') }}">
+{% endblock %}
+
+{% block content %}
+<script type="text/javascript">
+    var opened = false;
+    function openAdd(){
+        if (opened){
+            document.getElementById("add-completion").style.display = "none";
+        }
+        else {
+            document.getElementById("add-completion").style.display = "block";
+        }
+        opened = !opened;
+    }
+</script>
+<div>
+    <h2>
+    Prompt
+    </h2>
+    <p class="prompt">
+        {{ prompt.prompt }}
+    </p>
+</div>
+<div>
+    <h2>
+        Completions
+    </h2>
+    <button onclick="openAdd()">Add</button>
+    <div id="add-completion">
+        <form method="post" action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}">
+            <textarea name="completion" placeholder="Completion"></textarea>
+            <br/>
+            <input type="text" placeholder="comma,separated,tags" name="tags" />
+            <br/>
+            <br/>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    <div>
+        {% for row in completions %}
+        <hr/>
+        <div>
+            <h3>
+                Completion with id={{ row.id }}
+            </h3>
+            <p class="completion">
+                {{ row.completion }}
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

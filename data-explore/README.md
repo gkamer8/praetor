@@ -8,6 +8,8 @@ The project is lightweight and based on the Flask tutorial project to make thing
 
 ## Run
 
+First you should have a venv setup with the correct requirements, activated using `source venv/bin/activate`.
+
 You can run the development server from this directory using:
 
 ```
