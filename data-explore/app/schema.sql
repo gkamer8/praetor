@@ -6,21 +6,24 @@ CREATE TABLE examples (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `tags` TEXT,
   `prompt_id` INTEGER,
-  `completion` TEXT
+  `completion` TEXT,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE prompts (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `tags` TEXT,
   `style` TEXT,
-  `prompt` TEXT
+  `prompt` TEXT,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE metrics (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `name` TEXT,
   `score` TEXT,
-  `example_id` INTEGER
+  `example_id` INTEGER,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 INSERT INTO examples (tags, prompt_id, completion)

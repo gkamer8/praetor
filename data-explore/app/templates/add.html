@@ -2,6 +2,10 @@
 
 {% block title %}Add{% endblock %}
 
+{% block meta %}
+<link rel="stylesheet" href="{{ url_for('static', filename='add.css') }}">
+{% endblock %}
+
 {% block content %}
 <div>
     <h1>Add Data</h1>
@@ -10,7 +14,7 @@
             <h2>
                 Add Prompt
             </h2>
-            <textarea name="prompt"></textarea> <br/><br/>
+            <textarea name="prompt" class="prompt-textarea"></textarea> <br/><br/>
             <input type="text" placeholder="comma,separated,tags" name="tags" /> <br/><br/>
             <select name="style">
                 <option value="instruct" selected>Insutrct</option>
