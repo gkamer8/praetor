@@ -23,6 +23,8 @@ PROMPT_FILES = {
 
 ROOT_DIR = "data_gen_prompts"
 
+RESPONSE_OUTPUT_FILENAME = "structured_finetuning_data.json"
+
 def get_gpt_answer_prompt(instruction, prompt_file="prompt.txt"):
 
     with open(prompt_file, "r") as fhand:
@@ -114,10 +116,52 @@ def get_responses(file_paths, outfile_paths, quiet=False):
         json.dump(structured_data, open(outpath, "w"))
 
 
+def combine_structured_data(outfile):
+    paths = [os.path.join(ROOT_DIR, x, RESPONSE_OUTPUT_FILENAME) for x in PROMPT_FILES]
+    combined = []
+    for path in paths:
+        x = json.load(open(path, "r"))
+        combined.extend(x)
+
+    real_outfile = os.path.join(ROOT_DIR, outfile)
+    with open(real_outfile, "w") as fhand:
+        json.dump(combined, fhand)
+    
+
+"""
+
+The full stack looks like this:
+
+First you set up a directory inside 'data_gen_prompts', or whatever root directory you choose, for each subject.
+So a subject might be `politics` or something.
+
+There are two files that need to be in there: one containing example prompts for the AI to extend and
+one containing a prompt to instruct the AI to extend the list.
+
+Then you add the relevant files to PROMPT_FILES.
+
+Using gen_prompts(subject), a json file is created holding a list of gpt-generated prompts.
+
+Almost done: you can point get_responses to the json files and get GPT-generated respones, which are saved to json files.
+
+Finally, all of the data can be combined using combine_structured_data
+
+"""
+
 if __name__ == '__main__':
-    # subject = 'politics'
-    # gen_prompts(subject)
+
+    # Code for generating prompts using gpt
+    """
+    subject = 'politics'
+    gen_prompts(subject)
+    """
+
+    # Code for getting responses from gpt
+    """
     paths = [os.path.join(ROOT_DIR, x, PROMPT_FILES[x]['outfile']) for x in PROMPT_FILES]
-    outfile_paths = [os.path.join(ROOT_DIR, x, "structured_finetuning_data.json") for x in PROMPT_FILES]
+    outfile_paths = [os.path.join(ROOT_DIR, x, RESPONSE_OUTPUT_FILENAME) for x in PROMPT_FILES]
     get_responses(paths, outfile_paths)
+    """
+
+    combine_structured_data("combined.json")
     
