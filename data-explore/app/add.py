@@ -16,7 +16,7 @@ def add():
     if request.method == "POST":
 
         # Was it a bulk upload?
-        file = request.files['file']
+        file = request.files.get('file')
         if file:
             file_contents = file.read()
             # Read as json
