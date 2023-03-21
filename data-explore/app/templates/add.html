@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Add{% endblock %}
+
+{% block content %}
+<div>
+    <h1>Add Data</h1>
+    <div>
+        <form action="/add" method="POST">
+            <h2>
+                Add Prompt
+            </h2>
+            <textarea name="prompt"></textarea> <br/><br/>
+            <input type="text" placeholder="comma,separated,tags" name="tags" /> <br/><br/>
+            <select name="style">
+                <option value="instruct" selected>Insutrct</option>
+                <option value="chat">Chat</option>
+            </select> <br/><br/>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
