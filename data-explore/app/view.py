@@ -4,6 +4,7 @@ from flask import (
     request
 )
 from app.db import get_db
+from app.db_wrappers import add_example
 
 bp = Blueprint('view', __name__)
 
@@ -21,8 +22,12 @@ def view():
     if request.method == "POST":
         txt = request.form.get("completion")
         tags = request.form.get("tags")
-        db.execute("INSERT INTO examples (completion, tags, prompt_id) VALUES (?, ?, ?)", (txt, tags, prompt_id))
-        db.commit()
+        inputs = {
+            'completion': txt,
+            'tags': tags,
+            'prompt_id': prompt_id
+        }
+        add_example(db, inputs)
 
     prompt_dict = {}
     completions = []

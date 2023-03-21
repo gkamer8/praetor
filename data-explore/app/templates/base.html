@@ -3,9 +3,11 @@
     <title>{% block title %}{% endblock %} - Praetor</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     {% block meta %}{% endblock %}
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 <nav>
-  <a href="/"><h1>Praetor</h1></a>
+  <a href="/"><b><span style="font-size:2em;padding-right:.5em;">Praetor</span></b></a>
+  <a href="/manifest"><span>Prompts</span></a>
 </nav>
 <section class="content">
   {% block content %}{% endblock %}
