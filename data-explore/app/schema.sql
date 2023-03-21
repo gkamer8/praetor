@@ -31,7 +31,7 @@ VALUES ("coding, Python, short",
 
 INSERT INTO prompts (tags, style, prompt)
 VALUES ("coding, Python, simple, easy",
-        "instruction",
+        "instruct",
         "Write a line of Python that prints 'Hello World'"
         );
 

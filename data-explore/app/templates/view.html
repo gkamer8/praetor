@@ -26,6 +26,9 @@
     <p class="prompt">
         {{ prompt.prompt }}
     </p>
+    <div>
+        Style: {{ prompt.style }}
+    </div>
 </div>
 <div>
     <h2>
@@ -44,15 +47,15 @@
     </div>
     <div>
         {% for row in completions %}
-        <hr/>
         <div>
-            <h3>
-                Completion with id={{ row.id }}
-            </h3>
             <p class="completion">
                 {{ row.completion }}
             </p>
+            <div>
+                Tags: {{ row.tags }}
+            </div>
         </div>
+        <br/>
         {% endfor %}
     </div>
 </div>
