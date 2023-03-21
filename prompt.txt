@@ -1,0 +1,5 @@
+The following is a part of a conversation between a user and a knowledgable, honest AI assistant. The AI provides accurate, concise information.
+
+Instruction: {instruction}
+
+Response:

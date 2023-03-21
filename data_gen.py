@@ -3,30 +3,34 @@ from secrets import OPENAI_API_KEY, OPENAI_ORG_ID
 import json
 import os
 
+PROMPT_FILES = {
+    'coding': {
+        'outfile': 'coding_prompts.json',
+        'gen_qs_prompt': 'gen_coding_qs_prompt.txt',
+        'example_qs': 'example_coding_prompts.txt'
+    },
+    'philosophy': {
+        'outfile': 'phil_prompts.json',
+        'gen_qs_prompt': 'gen_phil_qs_prompt.txt',
+        'example_qs': 'example_phil_prompts.txt'
+    },
+    'politics': {
+        'outfile': 'prompts.json',
+        'gen_qs_prompt': 'gen_qs_prompt.txt',
+        'example_qs': 'example_prompts.txt'
+    }
+}
 
-def get_gpt_answer_prompt(instruction, context):
+ROOT_DIR = "data_gen_prompts"
 
-    if not context:
-        context = "(none)"
+def get_gpt_answer_prompt(instruction, prompt_file="prompt.txt"):
 
-    return f"""The following is a part of a conversation between a user and a knowledgable, honest AI assistant. The AI provides accurate, concise information.
+    with open(prompt_file, "r") as fhand:
+        structure = fhand.read()
+    return structure.format(instruction=instruction)
 
-Instruction: {instruction}
-
----
-
-Optional context:
-
-{context}
-
----
-
-Response:
-
-"""
-
-def get_gpt_answer(instruction, context=None):
-    prompt = get_gpt_answer_prompt(instruction, context)
+def get_gpt_answer(instruction):
+    prompt = get_gpt_answer_prompt(instruction)
     openai.organization = OPENAI_ORG_ID
     openai.api_key = OPENAI_API_KEY
     response = openai.Completion.create(
@@ -72,27 +76,9 @@ def get_more_prompts(prompt_file, example_file):
     return qs
 
 
-PROMPT_FILES = {
-    'coding': {
-        'outfile': 'coding_prompts.json',
-        'gen_qs_prompt': 'gen_coding_qs_prompt.txt',
-        'example_qs': 'example_coding_prompts.txt'
-    },
-    'philosophy': {
-        'outfile': 'phil_prompts.json',
-        'gen_qs_prompt': 'gen_phil_qs_prompt.txt',
-        'example_qs': 'example_phil_prompts.txt'
-    },
-    'politics': {
-        'outfile': 'prompts.json',
-        'gen_qs_prompt': 'gen_qs_prompt.txt',
-        'example_qs': 'example_prompts.txt'
-    }
-}
-
-# Takes a subject, which is a subdir of root_dir, and uses associated files
+# Takes a subject, which is a subdir of root_dir (e.g, 'politics'), and uses associated files
 #   in PROMPT_FILES to generate new questions for answering
-def gen_prompts(subject, root_dir='data_gen_prompts', quiet=False):
+def gen_prompts(subject, root_dir=ROOT_DIR, quiet=False):
     prompts_dir = os.path.join(root_dir, subject)
 
     outfile = os.path.join(prompts_dir, PROMPT_FILES[subject]['outfile'])
@@ -105,8 +91,33 @@ def gen_prompts(subject, root_dir='data_gen_prompts', quiet=False):
     json.dump(qs, open(outfile, "w"))
 
 
+# file_paths should be a list of filepaths with prompts
+def get_responses(file_paths, outfile_paths, quiet=False):
+    if not quiet:
+        print(f"Outputting to: {outfile_paths}")
+    for path, outpath in zip(file_paths, outfile_paths):
+        prompts = json.load(open(path, "r"))
+        completions = []
+        for i, prompt in enumerate(prompts):
+            print(f"#{i} in {path}")
+            if not quiet:
+                print(f"Prompt: {prompt}")
+            completion = get_gpt_answer(prompt)
+            if not quiet:
+                print(f"Completion: {completion}")
+            completions.append(completion)
+            
+        structured_data = [{
+                                'instruction': prompts[i],
+                                'completion': completions[i]
+                            } for i in range(len(completions))]
+        json.dump(structured_data, open(outpath, "w"))
+
+
 if __name__ == '__main__':
     # subject = 'politics'
     # gen_prompts(subject)
-    print("Nothing new to generate")
+    paths = [os.path.join(ROOT_DIR, x, PROMPT_FILES[x]['outfile']) for x in PROMPT_FILES]
+    outfile_paths = [os.path.join(ROOT_DIR, x, "structured_finetuning_data.json") for x in PROMPT_FILES]
+    get_responses(paths, outfile_paths)
     
