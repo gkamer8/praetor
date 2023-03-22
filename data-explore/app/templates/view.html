@@ -31,9 +31,10 @@
     </div>
 </div>
 <div>
-    <h2>
-        Completions
-    </h2>
+    <br/>
+    <span class="completions-header">
+        <b>Completions</b>
+    </span>
     <button onclick="openAdd()">Add</button>
     <div id="add-completion">
         <form method="post" action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}">
@@ -45,14 +46,31 @@
             <button type="submit">Submit</button>
         </form>
     </div>
+    <br/> <br/>
     <div>
+        <script>
+            var textarea = null;
+        </script>
         {% for row in completions %}
-        <div>
-            <pre class="completion">{{ row.completion }}</pre>
+        <form action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}" method="POST">
+            <textarea name="completion" id="completion-editor-{{ row.id }}" class="completion-editor">{{ row.completion }}</textarea>
+            <script>
+                textarea = document.getElementById("completion-editor-{{ row.id }}");
+                textarea.style.height = textarea.scrollHeight + "px";
+            </script>
             <div>
-                Tags: {{ row.tags }}
+                Tags: <input type="text" name="tags" value="{{ row.tags }}" />
             </div>
-        </div>
+            <button type="submit" class="edit-completion-button">
+                Update
+            </button>
+        </form>
+        <form action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}" method="POST">
+            <input type="number" value="{{ row.id }}" name="id" style="display:none" />
+            <button type="submit" class="delete-button">
+                Delete
+            </button>
+        </form>
         <br/>
         {% endfor %}
     </div>

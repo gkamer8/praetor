@@ -12,3 +12,23 @@ td, th {
 th {
   background-color: #f2f2f2;
 }
+
+#search-form {
+    max-width: min(calc(100% - 2em), 30em);
+    margin-bottom: 1em;
+    background-color: #f2f2f2;
+    padding: 1em;
+}
+
+label {
+    margin: 10px 0;
+}
+
+button{
+    margin-top: 10px;
+}
+
+#open-search-header {
+    cursor: pointer;
+    text-decoration: underline;
+}

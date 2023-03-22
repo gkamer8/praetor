@@ -11,20 +11,59 @@
     <h1>
         Prompts
     </h1>
+    <div>
+        <script type="text/javascript">
+            var opened = false;
+            function openSearch(){
+                if(opened){
+                    document.getElementById("extra-search-form").style.display = "none";
+                    opened = false;
+                }
+                else {
+                    document.getElementById("extra-search-form").style.display = "block";
+                    opened = true;
+                }
+            }
+        </script>
+        <div id="search-form">
+            <form action="/manifest" method="POST">
+                <label for="content-search">Search prompt content:</label>
+                <input type="text" id="content-search" name="content" placeholder="Search prompt content...">
+                <br/>
+                <span id="open-search-header" onclick="openSearch()">
+                    More options
+                </span>
+                <div id="extra-search-form" style="display:none">
+                    <br/>
+                    <label for="style-select">Select style:</label>
+                    <select id="style-select" name="style">
+                        <option value="">--Choose a style--</option>
+                        <option value="instruct">Instruct</option>
+                        <option value="chat">Chat</option>
+                    </select>
+                    <br/><br/>
+                    <label for="example-search">Search example:</label>
+                    <input type="text" id="example-search" name="example" placeholder="Search example...">
+                </div>
+                <br/>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
     <table>
         <thead>
             <tr>
                 <th>Link</th>
-                <th>Tags</th>
                 <th>Prompt</th>
+                <th>Tags</th>
             </tr>
         </thead>
         <tbody>
             {% for row in prompts %}
             <tr>
                 <td><a href="/view?prompt_id={{ row.id }}"> View </a></td>
-                <td>{{ row.tags }}</td>
                 <td>{{ row.prompt }}</td>
+                <td>{{ row.tags }}</td>
             </tr>
             {% endfor %}
         </tbody>

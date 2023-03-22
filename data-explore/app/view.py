@@ -4,7 +4,7 @@ from flask import (
     request
 )
 from app.db import get_db
-from app.db_wrappers import add_example
+from app.db_wrappers import add_or_update_example, delete_example
 
 bp = Blueprint('view', __name__)
 
@@ -22,12 +22,19 @@ def view():
     if request.method == "POST":
         txt = request.form.get("completion")
         tags = request.form.get("tags")
-        inputs = {
-            'completion': txt,
-            'tags': tags,
-            'prompt_id': prompt_id
-        }
-        add_example(db, inputs)
+        id = request.form.get("id")
+        # no txt, assume it means delete
+        if not txt:
+            delete_example(db, {'id': id})
+        else:
+            inputs = {
+                'completion': txt,
+                'tags': tags,
+                'prompt_id': prompt_id
+            }
+            if id:
+                inputs['id'] = id
+            add_or_update_example(db, inputs)
 
     prompt_dict = {}
     completions = []

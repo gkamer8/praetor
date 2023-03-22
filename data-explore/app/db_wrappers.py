@@ -5,14 +5,20 @@ All functions that depend on the peculiarities of the database
 """
 
 # Adds example to database and returns that example's id
-def add_example(db, input_dict):
+def add_or_update_example(db, input_dict):
     txt = input_dict['completion']
     tags = input_dict['tags']
     prompt_id = input_dict['prompt_id']
     c = db.cursor()
-    c.execute("INSERT INTO examples (completion, tags, prompt_id) VALUES (?, ?, ?)", (txt, tags, prompt_id))
-    item_id = c.lastrowid
-    db.commit()
+
+    if 'id' in input_dict:
+        item_id = input_dict['id']
+        c.execute("UPDATE examples SET completion = ?, tags = ? WHERE id = ?", (txt, tags, item_id))
+        db.commit()
+    else:
+        c.execute("INSERT INTO examples (completion, tags, prompt_id) VALUES (?, ?, ?)", (txt, tags, prompt_id))
+        item_id = c.lastrowid
+        db.commit()
     return item_id
 
 # Adds prompt to database and returns that prompt's id
@@ -61,3 +67,8 @@ def add_bulk(db, data, options):
         tags = options['tags'] + (("," + item[key_tags]) if key_tags else "")
         c.execute("INSERT INTO examples (completion, tags, prompt_id) VALUES (?, ?, ?)", (txt, tags, row_id))
         db.commit()
+
+def delete_example(db, inputs):
+    id = inputs['id']
+    db.execute("DELETE FROM examples WHERE id = ?", (id,))
+    db.commit()

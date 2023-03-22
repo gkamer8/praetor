@@ -1,5 +1,5 @@
 
-.prompt, .completion {
+.prompt, .completion-editor {
     padding: 1em;
     background-color: #f0f0f0;
     border: 1px solid #808080;
@@ -15,11 +15,19 @@
     height: 10em;
 }
 
-pre {
-    overflow-x: auto;
-    white-space: pre-wrap;
-    white-space: -moz-pre-wrap;
-    white-space: -pre-wrap;
-    white-space: -o-pre-wrap;
-    word-wrap: break-word;
+.completion-editor {
+    width: calc(100% - 2em);
+    margin-top: .5em;
+}
+
+.edit-completion-button{
+    margin-top: .5em;
+}
+
+.completions-header {
+    font-size: 1.5em;
+}
+
+.delete-button {
+    margin-top: .5em;
 }
