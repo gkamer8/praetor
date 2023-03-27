@@ -54,7 +54,7 @@
         </tbody>
     </table>
     <script type="text/javascript">
-        document.getElementById('style-select').value = "{{ request.args.get('style') }}";
+        document.getElementById('style-select').value = "{{ request.args.get('style') if request.args.get('style') }}";
         
         if(document.getElementById('example-search').value != ""){
             document.getElementById('extra-search-form').style.display = "block";
