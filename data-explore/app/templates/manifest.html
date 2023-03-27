@@ -4,6 +4,7 @@
 
 {% block meta %}
 <link rel="stylesheet" href="{{ url_for('static', filename='manifest.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='table.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -19,6 +20,11 @@
                 <button type="submit">Submit</button>
                 <br/><br/>
                 <input type="button" id="open-search-header" onclick="openSearch()" value="More Options" />
+                {% if request.args %}
+                <a href="/manifest">
+                    <input type="button" id="clear-search" onclick="openSearch()" value="Clear" />
+                </a>
+                {% endif %}
                 <div id="extra-search-form" style="display:none">
                     <br/>
                     <label for="style-select">Select style:</label>
@@ -34,7 +40,6 @@
                     <label for="example-search">Tag:</label>
                     <input type="text" id="tags-search" name="tags" value="{{ request.args.get('tags') if request.args.get('tags') }}" placeholder="Search tag...">
                 </div>
-                <br/>
             </form>
         </div>
         <div>
@@ -60,6 +65,45 @@
             {% endfor %}
         </tbody>
     </table>
+    <div id="pages">
+        {% set total_pages = ((total_results - 1) // page_size) + 1 %}
+        {% set query_params = request.args.copy() %}
+        {% set current_offset = query_params['offset']|default(0)|int %}
+        {% set current_page = current_offset // page_size + 1 %}
+        {% set page_window = 5 %}
+        {% set last_shown_page = [current_page+page_window, total_pages]|min %}
+
+        <div class="pagination">
+            {% if current_offset != 0 %}
+                {% set x=query_params.__setitem__("offset", 0) %}
+                <a href="{{ url_for(request.endpoint, **query_params) }}">
+                    First
+                </a>
+            {% endif %}
+            {% if total_pages - current_page > 0 %}
+                {% set x=query_params.__setitem__("offset", (current_page) * page_size) %}
+                <a href="{{ url_for(request.endpoint, **query_params) }}">
+                    Next
+                </a>
+            {% endif %}
+            {% for i in range([current_page - page_window, 1]|max, last_shown_page+1) %}
+                {% set x=query_params.__setitem__("offset", (i - 1) * page_size) %}
+                <a href="{{ url_for(request.endpoint, **query_params) }}">
+                    {% if i == current_page %}
+                        <span class="selected-page-number">{{ i }}</span>
+                    {% else %}
+                        <span class="unselected-page-number">{{ i }}</span>
+                    {% endif %}
+                </a>
+            {% endfor %}
+            {% if last_shown_page - total_pages < 0 %}
+                {% set x=query_params.__setitem__("offset", (total_pages - 1) * page_size) %}
+                <a href="{{ url_for(request.endpoint, **query_params) }}">
+                    ... {{ total_pages }}
+                </a>
+            {% endif %}
+        </div>
+    </div>
     <script type="text/javascript">
         document.getElementById('style-select').value = "{{ request.args.get('style') if request.args.get('style') }}";
         

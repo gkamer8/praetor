@@ -36,7 +36,7 @@ def add():
                 'style': request.form.get("style"),
             }
             add_bulk(get_db(), data, options)
-            return redirect(f"/manifest")
+            return redirect("/tasks")
         else:
             prompt = request.form.get("prompt")
             style = request.form.get("style")

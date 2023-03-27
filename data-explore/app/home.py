@@ -19,7 +19,9 @@ def manifest():
     db = get_db()
 
     limit = 100
-    offset = 0
+    offset = request.args.get('offset')
+    if not offset:
+        offset = 0
 
     content_arg = request.args.get("content")
     style_arg = request.args.get("style")
@@ -28,4 +30,4 @@ def manifest():
 
     prompts, total_results = search_prompts(db, limit, offset, content_arg, style_arg, example_arg, tags_arg)
 
-    return render_template('manifest.html', prompts=prompts, page_size=limit, offset=offset, total_results=total_results)
+    return render_template('manifest.html', prompts=prompts, page_size=limit, total_results=total_results)
