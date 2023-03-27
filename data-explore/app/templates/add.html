@@ -15,7 +15,13 @@
                 Add Prompt
             </h2>
             <textarea name="prompt" class="prompt-textarea"></textarea> <br/><br/>
+            <span>
+                Tags:
+            </span>
             <input type="text" placeholder="comma,separated,tags" name="tags" /> <br/><br/>
+            <span>
+                Prompt Style:
+            </span>
             <select name="style">
                 <option value="instruct" selected>Instruct</option>
                 <option value="chat">Chat</option>
@@ -29,13 +35,28 @@
                 Bulk Upload
             </h2>
             <input type="file" name="file"> <br/><br/>
+            <span>
+                Completion Key:
+            </span>
             <input type="text" value="completion" name="key_completion"> <br/><br/>
+            <span>
+                Prompt Key:
+            </span>
             <input type="text" value="instruction" name="key_prompt"> <br/><br/>
+            <span>
+                Prompt Style:
+            </span>
             <select name="style">
                 <option value="instruct" selected>Instruct</option>
                 <option value="chat">Chat</option>
             </select> <br/><br/>
+            <span>
+                Tags:
+            </span>
             <input type="text" placeholder="comma,sep,tags" name="tags"> <br/><br/>
+            <span>
+                Tags Key:
+            </span>
             <input type="text" placeholder="key for tags (optional)" name="key_tags"> <br/><br/>
             <input type="submit" value="Upload">
         </form>

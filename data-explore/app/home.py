@@ -4,6 +4,7 @@ from flask import (
     request
 )
 from app.db import get_db
+from app.db_wrappers import search_prompts
 
 bp = Blueprint('home', __name__)
 
@@ -15,28 +16,16 @@ def home():
 @bp.route('/manifest', methods=('GET', 'POST'))
 def manifest():
 
-    content = "%"
-    style = "%"
     db = get_db()
+
+    limit = 100
+    offset = 0
 
     content_arg = request.args.get("content")
     style_arg = request.args.get("style")
     example_arg = request.args.get("example")
+    tags_arg = request.args.get("tags")
 
-    if content_arg:
-        content = "%" + content_arg + "%"
-    if style_arg:
-        style = "%" + style_arg + "%"
-    
-    if example_arg:
-        example = "%" + example_arg + "%"
-        sql = "SELECT * FROM prompts WHERE prompt LIKE ? AND style LIKE ? AND EXISTS (SELECT * FROM examples WHERE examples.prompt_id = prompts.id AND examples.completion LIKE ?)"
-        prompts = db.execute(
-            sql, (content, style, example)
-        ).fetchall()
-    else:
-        prompts = db.execute(
-            'SELECT * FROM prompts WHERE prompt LIKE ? AND style LIKE ?', (content, style)
-        ).fetchall()
+    prompts, total_results = search_prompts(db, limit, offset, content_arg, style_arg, example_arg, tags_arg)
 
-    return render_template('manifest.html', prompts=prompts)
+    return render_template('manifest.html', prompts=prompts, page_size=limit, offset=offset, total_results=total_results)

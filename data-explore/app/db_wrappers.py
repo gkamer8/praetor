@@ -72,3 +72,57 @@ def delete_example(db, inputs):
     id = inputs['id']
     db.execute("DELETE FROM examples WHERE id = ?", (id,))
     db.commit()
+
+def search_prompts(db, limit, offset, content_arg, style_arg, example_arg, tags_arg):
+    content = "%"
+    style = "%"
+    tags = "%"
+
+    if content_arg:
+        content = "%" + content_arg + "%"
+    if style_arg:
+        style = "%" + style_arg + "%"
+    if tags_arg:
+        tags = "%" + tags_arg + "%"
+
+    total_results = 0
+
+    if example_arg:
+        example = "%" + example_arg + "%"
+        sql = """SELECT COUNT(*) FROM prompts
+                WHERE prompt LIKE ?
+                AND style LIKE ?
+                AND tags LIKE ?
+                AND EXISTS 
+                    (SELECT * FROM examples
+                    WHERE examples.prompt_id = prompts.id
+                    AND examples.completion LIKE ?)"""
+        total = db.execute(
+                sql, (content, style, tags, example)
+            ).fetchall()
+        total_results = total[0]['nresults']
+
+        sql = """SELECT COUNT(*) FROM prompts
+                WHERE prompt LIKE ?
+                AND style LIKE ?
+                AND tags LIKE ?
+                AND EXISTS 
+                    (SELECT * FROM examples
+                    WHERE examples.prompt_id = prompts.id
+                    AND examples.completion LIKE ?)
+                LIMIT ?"""
+        prompts = db.execute(
+                sql, (content, style, tags, example, limit)
+            ).fetchall()
+    else:
+        total = db.execute(
+            'SELECT COUNT(*) FROM prompts WHERE prompt LIKE ? AND style LIKE ? AND tags LIKE ? LIMIT ?', (content, style, tags, limit)
+        ).fetchall()
+        total_results = total[0]['COUNT(*)']
+
+        prompts = db.execute(
+            'SELECT * FROM prompts WHERE prompt LIKE ? AND style LIKE ? AND tags LIKE ? LIMIT ?', (content, style, tags, limit)
+        ).fetchall()
+
+    # total_results = prompts[0]['nresults']
+    return prompts, total_results

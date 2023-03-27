@@ -30,9 +30,16 @@
                     <br/><br/>
                     <label for="example-search">Search example:</label>
                     <input type="text" id="example-search" name="example" value="{{ request.args.get('example') if request.args.get('example') }}" placeholder="Search example...">
+                    <br/><br/>
+                    <label for="example-search">Tag:</label>
+                    <input type="text" id="tags-search" name="tags" value="{{ request.args.get('tags') if request.args.get('tags') }}" placeholder="Search tag...">
                 </div>
                 <br/>
             </form>
+        </div>
+        <div>
+            <span>Total Results:</span>
+            {{ "{:,d}".format(total_results) }}
         </div>
     </div>
     <table>
@@ -60,6 +67,9 @@
             document.getElementById('extra-search-form').style.display = "block";
         }
         if(document.getElementById('style-select').value != ""){
+            document.getElementById('extra-search-form').style.display = "block";
+        }
+        if(document.getElementById('tags-search').value != ""){
             document.getElementById('extra-search-form').style.display = "block";
         }
 
