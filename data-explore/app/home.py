@@ -19,26 +19,24 @@ def manifest():
     style = "%"
     db = get_db()
 
-    if request.method == "POST":
-        # content
-        if request.form.get("content"):
-            content = "%" + request.form.get("content") + "%"
-        if request.form.get("style"):
-            style = "%" + request.form.get("style") + "%"
-        
-        if request.form.get("example"):
-            example = "%" + request.form.get("example") + "%"
-            sql = "SELECT * FROM prompts WHERE prompt LIKE ? AND style LIKE ? AND EXISTS (SELECT * FROM examples WHERE examples.prompt_id = prompts.id AND examples.completion LIKE ?)"
-            prompts = db.execute(
-                sql, (content, style, example)
-            ).fetchall()
-        else:
-            prompts = db.execute(
-                'SELECT * FROM prompts WHERE prompt LIKE ? AND style LIKE ?', (content, style)
-            ).fetchall()
+    content_arg = request.args.get("content")
+    style_arg = request.args.get("style")
+    example_arg = request.args.get("example")
+
+    if content_arg:
+        content = "%" + content_arg + "%"
+    if style_arg:
+        style = "%" + style_arg + "%"
+    
+    if example_arg:
+        example = "%" + example_arg + "%"
+        sql = "SELECT * FROM prompts WHERE prompt LIKE ? AND style LIKE ? AND EXISTS (SELECT * FROM examples WHERE examples.prompt_id = prompts.id AND examples.completion LIKE ?)"
+        prompts = db.execute(
+            sql, (content, style, example)
+        ).fetchall()
     else:
         prompts = db.execute(
-            "SELECT * FROM prompts"
+            'SELECT * FROM prompts WHERE prompt LIKE ? AND style LIKE ?', (content, style)
         ).fetchall()
 
     return render_template('manifest.html', prompts=prompts)

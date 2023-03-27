@@ -12,27 +12,13 @@
         Prompts
     </h1>
     <div>
-        <script type="text/javascript">
-            var opened = false;
-            function openSearch(){
-                if(opened){
-                    document.getElementById("extra-search-form").style.display = "none";
-                    opened = false;
-                }
-                else {
-                    document.getElementById("extra-search-form").style.display = "block";
-                    opened = true;
-                }
-            }
-        </script>
         <div id="search-form">
-            <form action="/manifest" method="POST">
+            <form action="/manifest" method="GET">
                 <label for="content-search">Search prompt content:</label>
-                <input type="text" id="content-search" name="content" placeholder="Search prompt content...">
-                <br/>
-                <span id="open-search-header" onclick="openSearch()">
-                    More options
-                </span>
+                <input type="text" id="content-search" name="content" placeholder="Search prompt content..." value="{{ request.args.get('content') if request.args.get('content') }}">
+                <button type="submit">Submit</button>
+                <br/><br/>
+                <input type="button" id="open-search-header" onclick="openSearch()" value="More Options" />
                 <div id="extra-search-form" style="display:none">
                     <br/>
                     <label for="style-select">Select style:</label>
@@ -43,10 +29,9 @@
                     </select>
                     <br/><br/>
                     <label for="example-search">Search example:</label>
-                    <input type="text" id="example-search" name="example" placeholder="Search example...">
+                    <input type="text" id="example-search" name="example" value="{{ request.args.get('example') if request.args.get('example') }}" placeholder="Search example...">
                 </div>
                 <br/>
-                <button type="submit">Submit</button>
             </form>
         </div>
     </div>
@@ -68,5 +53,24 @@
             {% endfor %}
         </tbody>
     </table>
+    <script type="text/javascript">
+        document.getElementById('style-select').value = "{{ request.args.get('style') }}";
+        
+        if(document.getElementById('example-search').value != ""){
+            document.getElementById('extra-search-form').style.display = "block";
+        }
+        if(document.getElementById('style-select').value != ""){
+            document.getElementById('extra-search-form').style.display = "block";
+        }
+
+        function openSearch(){
+            if(document.getElementById("extra-search-form").style.display == "none"){
+                document.getElementById("extra-search-form").style.display = "block";
+            }
+            else {
+                document.getElementById("extra-search-form").style.display = "none";
+            }
+        }
+    </script>
 </div>
 {% endblock %}

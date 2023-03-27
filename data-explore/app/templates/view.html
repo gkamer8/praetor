@@ -38,6 +38,7 @@
     <button onclick="openAdd()">Add</button>
     <div id="add-completion">
         <form method="post" action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}">
+            <br/>
             <textarea name="completion" placeholder="Completion"></textarea>
             <br/>
             <input type="text" placeholder="comma,separated,tags" name="tags" />
