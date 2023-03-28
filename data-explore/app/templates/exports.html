@@ -22,7 +22,7 @@
         <tbody>
             {% for row in exports %}
             <tr>
-                <td>Download</td>
+                <td><a href="/exports?download_id={{ row.id }}"> Download</a></td>
                 <td>{{ row.created_at }}</td>
                 <td>{{ row.filename }}</td>
             </tr>

@@ -185,15 +185,19 @@ def export(db, **kwargs):
 def export_background(db, **kwargs):
     try:
         sql, args = get_search_query(include_examples=True,
-                                    columns_str="p.prompt AS instruction, e.completion AS output",
+                                    columns_str="p.prompt AS prompt, e.completion AS completion",
                                     **kwargs)
 
         cursor = db.cursor()
         # Execute query
         cursor.execute(sql, args)
 
-        filename = "testing.json"
+        filename = kwargs['filename']
         path = os.path.join(current_app.config.get('EXPORTS_PATH'), filename)
+
+
+        completion_key = kwargs['completion_key'] if 'completion_key' in kwargs else "output"
+        prompt_key = kwargs['prompt_key'] if 'prompt_key' in kwargs else "instruction"
 
         fhand = open(path, 'w')
         fhand.write('[\n')
@@ -202,6 +206,7 @@ def export_background(db, **kwargs):
         row = cursor.fetchone()
         while row is not None:
             # Serialize row to JSON and write to file
+            row = {prompt_key: row['prompt'], completion_key: row['completion']}
             json_data = encoder.encode(row)
 
             fhand.write(json_data)
@@ -283,3 +288,10 @@ def get_exports(db):
     """
     exports = db.execute(sql)
     return exports
+
+def get_export_by_id(db, id):
+    sql = """
+        SELECT * FROM exports WHERE id = ?
+    """
+    export = db.execute(sql, id)
+    return export.fetchone()
