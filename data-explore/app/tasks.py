@@ -4,7 +4,7 @@ from flask import (
     request
 )
 from app.db import get_db
-from app.db_wrappers import get_tasks
+from app.db_wrappers import get_tasks, export, get_exports
 
 bp = Blueprint('tasks', __name__)
 

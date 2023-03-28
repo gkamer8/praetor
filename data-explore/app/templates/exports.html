@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Tasks{% endblock %}
+{% block title %}Exports{% endblock %}
 
 {% block meta %}
 <link rel="stylesheet" href="{{ url_for('static', filename='table.css') }}">
@@ -9,22 +9,22 @@
 {% block content %}
   <div>
       <h1>
-        Tasks
+        Exports
       </h1>
       <table>
         <thead>
             <tr>
+                <th>Download</th>
                 <th>Time</th>
-                <th>Type</th>
-                <th>Status</th>
+                <th>Filename</th>
             </tr>
         </thead>
         <tbody>
-            {% for row in tasks %}
+            {% for row in exports %}
             <tr>
+                <td>Download</td>
                 <td>{{ row.created_at }}</td>
-                <td>{{ row.type }}</td>
-                <td>{{ row.status }}</td>
+                <td>{{ row.filename }}</td>
             </tr>
             {% endfor %}
         </tbody>

@@ -9,6 +9,7 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'app.sqlite'),
+        EXPORTS_PATH=os.path.join(app.instance_path, 'exports')
     )
 
     if test_config is None:
@@ -23,6 +24,10 @@ def create_app(test_config=None):
         os.makedirs(app.instance_path)
     except OSError:
         pass
+    try:
+        os.makedirs(os.path.join(app.instance_path, 'exports'))
+    except OSError:
+        pass
 
     from . import view
     app.register_blueprint(view.bp)
@@ -35,6 +40,9 @@ def create_app(test_config=None):
 
     from . import tasks
     app.register_blueprint(tasks.bp)
+
+    from . import exporting
+    app.register_blueprint(exporting.bp)
 
     # connect database
     from . import db

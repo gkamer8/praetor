@@ -1,6 +1,8 @@
 import multiprocessing
 import json
 import os
+from app.db import SQLiteJSONEncoder
+from flask import current_app
 
 """
 
@@ -108,64 +110,163 @@ def add_bulk_background(db, data, options):
         db.execute(sql, (os.getpid(),))
         db.commit()
 
+
+def get_search_query(count_only=False, include_examples=False, columns_str="*", **kwargs):
+    
+    content = "%"
+    style = "%"
+    tags = "%"
+    example = "%"
+
+    find_example1 = ""
+    find_example2 = ""
+    if 'content' in kwargs and kwargs['content']:
+        content = "%" + kwargs['content'] + "%"
+    if 'style' in kwargs and kwargs['style']:
+        style = "%" + kwargs['style'] + "%"
+    if 'tags' in kwargs and kwargs['tags']:
+        tags = "%" + kwargs['tags'] + "%"
+
+    args = [content, style, tags]
+
+    search_for_example = ('example' in kwargs and kwargs['example'])
+    if include_examples or search_for_example:
+        if search_for_example:
+            example = "%" + kwargs['example'] + "%"
+        find_example1 = """JOIN examples AS e
+                ON p.id = e.prompt_id"""
+        find_example2 = "AND e.completion LIKE ?"
+        args.append(example)
+
+    limit_str = ""
+    offset_str = ""
+    if not count_only and 'limit' in kwargs and kwargs['limit']:
+        args.append(kwargs['limit'])
+        limit_str = f"LIMIT ?"
+    if not count_only and 'offset' in kwargs and kwargs['offset']:
+        args.append(kwargs['offset'])
+        offset_str = f"OFFSET ?"
+    
+    
+    columns = "COUNT(*) as nresults" if count_only else columns_str
+    sql = f"""SELECT {columns}
+                FROM prompts AS p
+                {find_example1}
+                WHERE p.prompt LIKE ? 
+                AND p.style LIKE ? 
+                AND p.tags LIKE ? 
+                {find_example2}
+                {limit_str}
+                {offset_str}
+            """
+    return sql, args
+
+
+def export(db, **kwargs):
+    p = multiprocessing.Process(target=export_background, args=(db,), kwargs=kwargs)
+    p.start()
+
+    sql = """
+        INSERT INTO tasks (`type`, `status`, `pid`)
+        VALUES ("export",
+                "in_progress",
+                ?
+                );
+    """
+    db.execute(sql, (p.pid,))
+    db.commit()
+    status = {
+        'pid': p.pid,
+        'status': 'in_progress'
+    }
+    return status
+
+
+def export_background(db, **kwargs):
+    try:
+        sql, args = get_search_query(include_examples=True,
+                                    columns_str="p.prompt AS instruction, e.completion AS output",
+                                    **kwargs)
+
+        cursor = db.cursor()
+        # Execute query
+        cursor.execute(sql, args)
+
+        filename = "testing.json"
+        path = os.path.join(current_app.config.get('EXPORTS_PATH'), filename)
+
+        fhand = open(path, 'w')
+        fhand.write('[\n')
+
+        encoder = SQLiteJSONEncoder(indent=4)
+        row = cursor.fetchone()
+        while row is not None:
+            # Serialize row to JSON and write to file
+            json_data = encoder.encode(row)
+
+            fhand.write(json_data)
+
+            # Get next row
+            row = cursor.fetchone()
+
+            # If there are more rows, write a comma after the previous row
+            if row is not None:
+                fhand.write(',\n')
+
+        fhand.write(']')
+        fhand.close()
+
+        sql = """
+                INSERT INTO exports (`filename`)
+                VALUES (?);
+            """
+        db.execute(sql, (filename,))
+
+        sql = """
+                UPDATE tasks
+                SET status = 'completed'
+                WHERE pid = ?;
+            """
+        db.execute(sql, (os.getpid(),))
+        db.commit()
+
+    except Exception as e:
+        sql = """
+            UPDATE tasks
+            SET status = 'failed'
+            WHERE pid = ?;
+        """
+        db.execute(sql, (os.getpid(),))
+        db.commit()
+        print(f"Error occurred: {e}")
+
 def delete_example(db, inputs):
     id = inputs['id']
     db.execute("DELETE FROM examples WHERE id = ?", (id,))
     db.commit()
 
 def search_prompts(db, limit, offset, content_arg, style_arg, example_arg, tags_arg):
-    content = "%"
-    style = "%"
-    tags = "%"
+    
+    kwargs = {
+        'limit': limit,
+        'offset': offset,
+        'content': content_arg,
+        'style': style_arg,
+        'example': example_arg,
+        'tags': tags_arg
+    }
 
-    if content_arg:
-        content = "%" + content_arg + "%"
-    if style_arg:
-        style = "%" + style_arg + "%"
-    if tags_arg:
-        tags = "%" + tags_arg + "%"
-
-    total_results = 0
-
-    if example_arg:
-        example = "%" + example_arg + "%"
-        sql = """SELECT COUNT(*) as nresults
-                FROM prompts AS p
-                JOIN examples AS e
-                ON p.id = e.prompt_id 
-                WHERE p.prompt LIKE ? 
-                AND p.style LIKE ? 
-                AND p.tags LIKE ? 
-                AND e.completion LIKE ?
-            """
-        total = db.execute(
-                sql, (content, style, tags, example)
+    sql, args = get_search_query(count_only=True, **kwargs)
+    total = db.execute(
+                sql, args
             ).fetchall()
-        total_results = total[0]['nresults']
+    total_results = total[0]['nresults']
 
-        sql = """SELECT p.*
-                FROM prompts AS p
-                JOIN examples AS e
-                ON p.id = e.prompt_id 
-                WHERE p.prompt LIKE ? 
-                AND p.style LIKE ? 
-                AND p.tags LIKE ? 
-                AND e.completion LIKE ?
-                LIMIT ? OFFSET ?"""
-        prompts = db.execute(
-                sql, (content, style, tags, example, limit, offset)
+    sql, args = get_search_query(**kwargs)
+    prompts = db.execute(
+                sql, args
             ).fetchall()
-    else:
-        total = db.execute(
-            'SELECT COUNT(*) FROM prompts WHERE prompt LIKE ? AND style LIKE ? AND tags LIKE ? LIMIT ?', (content, style, tags, limit)
-        ).fetchall()
-        total_results = total[0]['COUNT(*)']
 
-        prompts = db.execute(
-            'SELECT * FROM prompts WHERE prompt LIKE ? AND style LIKE ? AND tags LIKE ? LIMIT ? OFFSET ?', (content, style, tags, limit, offset)
-        ).fetchall()
-
-    # total_results = prompts[0]['nresults']
     return prompts, total_results
 
 
@@ -175,3 +276,10 @@ def get_tasks(db):
     """
     tasks = db.execute(sql)
     return tasks
+
+def get_exports(db):
+    sql = """
+        SELECT * FROM exports ORDER BY created_at DESC
+    """
+    exports = db.execute(sql)
+    return exports

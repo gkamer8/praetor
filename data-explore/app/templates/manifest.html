@@ -8,6 +8,9 @@
 {% endblock %}
 
 {% block content %}
+
+{% set query_params = request.args.copy() %}
+
 <div>
     <h1>
         Prompts
@@ -20,9 +23,12 @@
                 <button type="submit">Submit</button>
                 <br/><br/>
                 <input type="button" id="open-search-header" onclick="openSearch()" value="More Options" />
+                <a style="all:unset" href="{{ url_for('exporting.exp', **query_params) }}">
+                    <input type="button" value="Export" />
+                </a>
                 {% if request.args %}
                 <a href="/manifest">
-                    <input type="button" id="clear-search" onclick="openSearch()" value="Clear" />
+                    <input type="button" id="clear-search" value="Clear" />
                 </a>
                 {% endif %}
                 <div id="extra-search-form" style="display:none">
@@ -67,7 +73,6 @@
     </table>
     <div id="pages">
         {% set total_pages = ((total_results - 1) // page_size) + 1 %}
-        {% set query_params = request.args.copy() %}
         {% set current_offset = query_params['offset']|default(0)|int %}
         {% set current_page = current_offset // page_size + 1 %}
         {% set page_window = 5 %}

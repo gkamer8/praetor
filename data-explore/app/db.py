@@ -1,5 +1,5 @@
 import sqlite3
-
+import json
 import click
 from flask import current_app, g
 
@@ -46,3 +46,10 @@ def init_db_command():
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
+
+
+class SQLiteJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, sqlite3.Row):
+            return dict(obj)
+        return json.JSONEncoder.default(self, obj)
