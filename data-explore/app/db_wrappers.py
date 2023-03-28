@@ -27,6 +27,24 @@ def add_or_update_example(db, input_dict):
         db.commit()
     return item_id
 
+
+def delete_example(db, inputs):
+    id = inputs['id']
+    db.execute("DELETE FROM examples WHERE id = ?", (id,))
+    db.commit()
+
+def delete_prompt(db, inputs):
+    id = inputs['id']
+    db.execute("DELETE FROM prompts WHERE id = ?", (id,))
+    db.commit()
+
+def update_prompt(db, input_dict):
+    c = db.cursor()
+    c.execute("UPDATE prompts SET prompt = ?, tags = ?, style = ? WHERE id = ?", (input_dict['prompt'], input_dict['tags'], input_dict['style'], input_dict['id']))
+    item_id = c.lastrowid
+    db.commit()
+    return item_id
+
 # Adds prompt to database and returns that prompt's id
 def add_prompt(db, input_dict):
     prompt = input_dict['prompt']
@@ -244,11 +262,6 @@ def export_background(db, **kwargs):
         db.execute(sql, (os.getpid(),))
         db.commit()
         print(f"Error occurred: {e}")
-
-def delete_example(db, inputs):
-    id = inputs['id']
-    db.execute("DELETE FROM examples WHERE id = ?", (id,))
-    db.commit()
 
 def search_prompts(db, limit, offset, content_arg, style_arg, example_arg, tags_arg):
     
