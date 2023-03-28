@@ -308,3 +308,17 @@ def get_export_by_id(db, id):
     """
     export = db.execute(sql, id)
     return export.fetchone()
+
+def get_prompt_by_id(db, id):
+    sql = """
+        SELECT * FROM prompts WHERE id = ?
+    """
+    prompt = db.execute(sql, (id,))
+    return prompt.fetchone()
+
+def get_examples_by_prompt_id(db, prompt_id):
+    sql = """
+        SELECT * FROM examples WHERE prompt_id = ?
+    """
+    examples = db.execute(sql, (prompt_id,))
+    return examples.fetchall()

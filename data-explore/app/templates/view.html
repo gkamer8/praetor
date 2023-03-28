@@ -20,90 +20,96 @@
     }
 </script>
 <div>
-    <h2>
-    Prompt
-    </h2>
-    <form action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}" method="POST">
-        <textarea name="prompt" id="prompt-editor" class="completion-editor">{{ prompt.prompt }}</textarea>
-        <script>
-            textarea = document.getElementById("prompt-editor");
-            textarea.style.height = textarea.scrollHeight + "px";
-        </script>
-        <div>
-            Tags: <input type="text" name="tags" value="{{ prompt.tags }}" />
-        </div>
-        <select id="style-select" class="edit-style" name="style">
-            <option value="">--Choose a style--</option>
-            <option value="instruct">Instruct</option>
-            <option value="chat">Chat</option>
-        </select>
-        <script type="text/javascript">
-            document.getElementById('style-select').value = "{{ prompt.style }}";
-        </script>
-        <br/>
-        <input type="number" value="{{ prompt.id }}" name="id" style="display:none" />
-        <input type="text" value="prompt" name="prompt_or_example" style="display:none" />
-        <button type="submit" class="edit-prompt-button">
-            Update
-        </button>
-    </form>
-    <form action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}" method="POST">
-        <input type="number" value="{{ prompt.id }}" name="id" style="display:none" />
-        <input type="text" value="prompt" name="prompt_or_example" style="display:none" />
-        <button type="submit" class="delete-button">
-            Delete
-        </button>
-    </form>
-    <br/>
-</div>
-<div>
-    <br/>
-    <span class="completions-header">
-        <b>Completions</b>
-    </span>
-    <button onclick="openAdd()">Add</button>
-    <div id="add-completion">
-        <form method="post" action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}">
-            <br/>
-            <textarea name="completion" placeholder="Completion"></textarea>
-            <br/>
-            <input type="text" placeholder="comma,separated,tags" name="tags" />
-            <br/>
-            <br/>
-            <input type="text" value="example" name="prompt_or_example" style="display:none" />
-            <button type="submit">Submit</button>
-        </form>
-    </div>
-    <br/> <br/>
+    {% if prompt %}
     <div>
-        <script>
-            var textarea = null;
-        </script>
-        {% for row in completions %}
+        <h2>
+        Prompt
+        </h2>
         <form action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}" method="POST">
-            <textarea name="completion" id="completion-editor-{{ row.id }}" class="completion-editor">{{ row.completion }}</textarea>
+            <textarea name="prompt" id="prompt-editor" class="completion-editor">{{ prompt.prompt }}</textarea>
             <script>
-                textarea = document.getElementById("completion-editor-{{ row.id }}");
+                textarea = document.getElementById("prompt-editor");
                 textarea.style.height = textarea.scrollHeight + "px";
             </script>
             <div>
-                Tags: <input type="text" name="tags" value="{{ row.tags }}" />
+                Tags: <input type="text" name="tags" value="{{ prompt.tags }}" />
             </div>
-            <input type="number" value="{{ row.id }}" name="id" style="display:none" />
-            <input type="text" value="example" name="prompt_or_example" style="display:none" />
-            <button type="submit" class="edit-completion-button">
+            <select id="style-select" class="edit-style" name="style">
+                <option value="">--Choose a style--</option>
+                <option value="instruct">Instruct</option>
+                <option value="chat">Chat</option>
+            </select>
+            <script type="text/javascript">
+                document.getElementById('style-select').value = "{{ prompt.style }}";
+            </script>
+            <br/>
+            <input type="number" value="{{ prompt.id }}" name="id" style="display:none" />
+            <input type="text" value="prompt" name="prompt_or_example" style="display:none" />
+            <button type="submit" class="edit-prompt-button">
                 Update
             </button>
         </form>
         <form action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}" method="POST">
-            <input type="number" value="{{ row.id }}" name="id" style="display:none" />
-            <input type="text" value="example" name="prompt_or_example" style="display:none" />
+            <input type="number" value="{{ prompt.id }}" name="id" style="display:none" />
+            <input type="text" value="prompt" name="prompt_or_example" style="display:none" />
             <button type="submit" class="delete-button">
                 Delete
             </button>
         </form>
         <br/>
-        {% endfor %}
     </div>
+    <div>
+        <br/>
+        <span class="completions-header">
+            <b>Completions</b>
+        </span>
+        <button onclick="openAdd()">Add</button>
+        <div id="add-completion">
+            <form method="post" action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}">
+                <br/>
+                <textarea name="completion" placeholder="Completion"></textarea>
+                <br/>
+                <input type="text" placeholder="comma,separated,tags" name="tags" />
+                <br/>
+                <br/>
+                <input type="text" value="example" name="prompt_or_example" style="display:none" />
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+        <br/> <br/>
+        <div>
+            <script>
+                var textarea = null;
+            </script>
+            {% for row in completions %}
+            <form action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}" method="POST">
+                <textarea name="completion" id="completion-editor-{{ row.id }}" class="completion-editor">{{ row.completion }}</textarea>
+                <script>
+                    textarea = document.getElementById("completion-editor-{{ row.id }}");
+                    textarea.style.height = textarea.scrollHeight + "px";
+                </script>
+                <div>
+                    Tags: <input type="text" name="tags" value="{{ row.tags }}" />
+                </div>
+                <input type="number" value="{{ row.id }}" name="id" style="display:none" />
+                <input type="text" value="example" name="prompt_or_example" style="display:none" />
+                <button type="submit" class="edit-completion-button">
+                    Update
+                </button>
+            </form>
+            <form action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}" method="POST">
+                <input type="number" value="{{ row.id }}" name="id" style="display:none" />
+                <input type="text" value="example" name="prompt_or_example" style="display:none" />
+                <button type="submit" class="delete-button">
+                    Delete
+                </button>
+            </form>
+            <br/>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <h1>No Prompt Found</h1>
+    {% endif %}
 </div>
 {% endblock %}
