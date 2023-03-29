@@ -44,6 +44,12 @@ def create_app(test_config=None):
     from . import exporting
     app.register_blueprint(exporting.bp)
 
+    from . import projects
+    app.register_blueprint(projects.bp)
+
+    from . import style
+    app.register_blueprint(style.bp)
+
     # connect database
     from . import db
     db.init_app(app)

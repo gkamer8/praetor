@@ -29,7 +29,6 @@ def view():
             # Am I deleting?
             if not (tags or style or prompt):
                 delete_prompt(db, {'id': id})
-                return redirect('/manifest')
             else:
                 inputs = {
                     'prompt': prompt,
@@ -55,8 +54,5 @@ def view():
 
     prompt_dict = get_prompt_by_id(get_db(), prompt_id)
     completions = get_examples_by_prompt_id(get_db(), prompt_id)
-
-    print(prompt_dict)
-    print(completions)
 
     return render_template('view.html', prompt=prompt_dict, completions=completions)

@@ -3,21 +3,61 @@ DROP TABLE IF EXISTS prompts;
 DROP TABLE IF EXISTS metrics;
 DROP TABLE IF EXISTS tasks;
 DROP TABLE IF EXISTS exports;
+DROP TABLE IF EXISTS styles;
+DROP TABLE IF EXISTS projects;
+DROP TABLE IF EXISTS tags;
+DROP TABLE IF EXISTS prompt_values;
 
 CREATE TABLE examples (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `tags` TEXT,
   `prompt_id` INTEGER,
   `completion` TEXT,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE tags (
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `value` TEXT,
+    `prompt_id` INTEGER,  /* Optional prompt association */
+    `example_id` INTEGER  /* Optional example association */
+);
+
 CREATE TABLE prompts (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `tags` TEXT,
-  `style` TEXT,
-  `prompt` TEXT,
+  `style` TEXT,  /* Should match a style id_text */
+  `project_id` INTEGER,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE prompt_values (
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `prompt_id` INTEGER,
+    `key` TEXT,
+    `value` TEXT
+);
+
+CREATE TABLE styles (
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `id_text` TEXT,  /* like 'instruct' or 'chat' */
+    `format_string` TEXT,
+    `project_id` INTEGER,
+    `template` TEXT,
+    `completion_key` TEXT,  /* Where the LLM is meant to add */
+    `preview_key` TEXT,  /* For table previews of the prompts */
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE style_keys (
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `name` TEXT,
+    `style_id` INTEGER
+);
+
+CREATE TABLE projects (
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `name` TEXT,
+    `desc` TEXT,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE metrics (
@@ -44,25 +84,53 @@ CREATE TABLE exports (
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO examples (tags, prompt_id, completion)
-VALUES ("coding, Python, short",
+INSERT INTO projects (`name`, `desc`)
+VALUES ("Sample Project",
+        "My first project"
+        );
+
+INSERT INTO styles (`id_text`, `project_id`, `template`, `completion_key`, `preview_key`)
+VALUES ("instruct",
         1,
-        "print('Hello World')"
+        "Instruction: {instruction}
+Input: {input}
+Output: {output}",
+        "output",
+        "instruction"
         );
 
-INSERT INTO prompts (tags, style, prompt)
-VALUES ("coding, Python, simple, easy",
-        "instruct",
-        "Write a line of Python that prints 'Hello World'"
-        );
-
-INSERT INTO metrics (`name`, `score`, `example_id`)
-VALUES ("elo",
-        1500,
+INSERT INTO style_keys (`name`, `style_id`)
+VALUES ("instruction",
         1
         );
 
-INSERT INTO tasks (`type`, `status`)
-VALUES ("bulk_upload",
-        "completed"
+INSERT INTO style_keys (`name`, `style_id`)
+VALUES ("input",
+        1
+        );
+
+INSERT INTO style_keys (`name`, `style_id`)
+VALUES ("output",
+        1
+        );
+
+INSERT INTO prompts (style, project_id)
+VALUES ("instruct",
+        1
+        );
+
+INSERT INTO prompt_values (`prompt_id`, `key`, `value`)
+VALUES (1,
+        "instruction",
+        "Write a line of Python that prints Hello World"
+        );
+
+INSERT INTO examples (prompt_id, completion)
+VALUES (1,
+        "print('Hello World')"
+        );
+
+INSERT INTO tags (`example_id`, `value`)
+VALUES (1,
+        "coding"
         );

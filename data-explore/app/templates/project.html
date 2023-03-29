@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Projects{% endblock %}
+
+{% block meta %}
+<link rel="stylesheet" href="{{ url_for('static', filename='table.css') }}">
+{% endblock %}
+
+{% block content %}
+  <div>
+        <h1>
+            {{ project.name }}
+        </h1>
+        <div>
+            <h2>
+                Description
+            </h2>
+            {{ project.desc }}
+        </div>
+        <h2>Styles</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Link</th>
+                    <th>Time</th>
+                    <th>Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in styles %}
+                <tr>
+                    <td><a href="/style?id={{ row.id }}">View</a></td>
+                    <td>{{ row.created_at }}</td>
+                    <td>{{ row.id_text }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+  </div>
+{% endblock %}

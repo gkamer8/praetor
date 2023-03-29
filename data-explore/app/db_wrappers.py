@@ -322,3 +322,38 @@ def get_examples_by_prompt_id(db, prompt_id):
     """
     examples = db.execute(sql, (prompt_id,))
     return examples.fetchall()
+
+def get_projects(db):
+    sql = """
+        SELECT * FROM projects
+    """
+    examples = db.execute(sql)
+    return examples.fetchall()
+
+def get_project_by_id(db, id):
+    sql = """
+        SELECT * FROM projects WHERE id = ?
+    """
+    examples = db.execute(sql, (id,))
+    return examples.fetchone()
+
+def get_styles_by_project_id(db, id):
+    sql = """
+        SELECT * FROM styles WHERE project_id = ?
+    """
+    examples = db.execute(sql, (id,))
+    return examples.fetchall()
+
+def get_style_by_id(db, id):
+    sql = """
+        SELECT * FROM styles WHERE id = ?
+    """
+    style = db.execute(sql, (id,))
+    return style.fetchone()
+
+def get_keys_by_style_id(db, id):
+    sql = """
+        SELECT * FROM style_keys WHERE style_id = ?
+    """
+    keys = db.execute(sql, (id,))
+    return keys.fetchall()
