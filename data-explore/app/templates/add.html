@@ -14,18 +14,20 @@
             <h2>
                 Add Prompt
             </h2>
-            <textarea name="prompt" class="prompt-textarea"></textarea> <br/><br/>
+            <span>
+                Prompt Style: {{ style.id_text }}
+            </span> <br/><br/>
+            {% for key in style_keys %}
+                {{ key.name }} <br/>
+                <textarea name="key.{{ key.name }}" class="prompt-textarea"></textarea> <br/><br/>
+            {% endfor %}
             <span>
                 Tags:
             </span>
             <input type="text" placeholder="comma,separated,tags" name="tags" /> <br/><br/>
-            <span>
-                Prompt Style:
-            </span>
-            <select name="style">
-                <option value="instruct" selected>Instruct</option>
-                <option value="chat">Chat</option>
-            </select> <br/><br/>
+            <input type="text" style="display:none" value="{{ project.id }}" name="project_id" />
+            <input type="text" style="display:none" value="{{ style.id }}" name="style_id" />
+
             <button type="submit">Submit</button>
         </form>
     </div>

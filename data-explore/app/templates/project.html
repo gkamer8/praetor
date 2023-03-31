@@ -22,16 +22,18 @@
             <thead>
                 <tr>
                     <th>Link</th>
-                    <th>Time</th>
                     <th>Name</th>
+                    <th>Add Data in Style</th>
+                    <th>Time Created</th>
                 </tr>
             </thead>
             <tbody>
                 {% for row in styles %}
                 <tr>
                     <td><a href="/style?id={{ row.id }}">View</a></td>
-                    <td>{{ row.created_at }}</td>
                     <td>{{ row.id_text }}</td>
+                    <td><a href="/add?project_id={{ project.id }}&style_id={{ row.id }}"><button>Add Data</button></a></td>
+                    <td>{{ row.created_at }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

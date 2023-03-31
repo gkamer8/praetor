@@ -46,15 +46,31 @@ def update_prompt(db, input_dict):
     return item_id
 
 # Adds prompt to database and returns that prompt's id
-def add_prompt(db, input_dict):
-    prompt = input_dict['prompt']
-    tags = input_dict['tags']
-    style = input_dict['style']
+def add_prompt(db, **kwargs):
+
+    tags = kwargs['tags']
+    keys = kwargs['keys']
+    project_id = kwargs['project_id']
+    style_id = kwargs['style_id']
+
+    # TODO
+    # Add tags to tags table
+    # Add prompt with corresponding project id and style id
+    # Add key values to prompt_values
+
     c = db.cursor()
-    c.execute("INSERT INTO prompts (prompt, tags, style) VALUES (?, ?, ?)", (prompt, tags, style))
-    item_id = c.lastrowid
+
+    c.execute("INSERT INTO prompts (project_id, style) VALUES (?, ?)", (project_id, style_id))
+    prompt_id = c.lastrowid
+
+    for t in tags:
+        c.execute("INSERT INTO tags (value, prompt_id) VALUES (?, ?)", (prompt_id, t))
+
+    for k in keys:
+        c.execute("INSERT INTO prompt_values (prompt_id, key, value) VALUES (?, ?, ?)", (prompt_id, k, keys[k]))
+
     db.commit()
-    return item_id
+    return prompt_id
 
 # Takes data and inserts prompts and examples
 # Data is a list of dictionaries 
@@ -357,3 +373,17 @@ def get_keys_by_style_id(db, id):
     """
     keys = db.execute(sql, (id,))
     return keys.fetchall()
+
+def get_tags_by_prompt_id(db, prompt_id):
+    sql = """
+        SELECT * FROM tags WHERE prompt_id = ?
+    """
+    tags = db.execute(sql, (prompt_id,))
+    return tags.fetchall()
+
+def get_prompt_values_by_prompt_id(db, prompt_id):
+    sql = """
+        SELECT * FROM prompt_values WHERE prompt_id = ?
+    """
+    vals = db.execute(sql, (prompt_id,))
+    return vals.fetchall()

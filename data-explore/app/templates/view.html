@@ -26,23 +26,14 @@
         Prompt
         </h2>
         <form action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}" method="POST">
-            <textarea name="prompt" id="prompt-editor" class="completion-editor">{{ prompt.prompt }}</textarea>
-            <script>
-                textarea = document.getElementById("prompt-editor");
-                textarea.style.height = textarea.scrollHeight + "px";
-            </script>
-            <div>
-                Tags: <input type="text" name="tags" value="{{ prompt.tags }}" />
-            </div>
-            <select id="style-select" class="edit-style" name="style">
-                <option value="">--Choose a style--</option>
-                <option value="instruct">Instruct</option>
-                <option value="chat">Chat</option>
-            </select>
-            <script type="text/javascript">
-                document.getElementById('style-select').value = "{{ prompt.style }}";
-            </script>
-            <br/>
+            
+            <span>
+                Prompt Style: <a href="style?id={{ style.id }}">{{ style.id_text }}</a>
+            </span> <br/><br/>
+            {% for val in prompt_values %}
+                {{ val.key }} <br/>
+                <textarea name="key.{{ val.key }}" class="completion-editor">{{ val.value }}</textarea> <br/><br/>
+            {% endfor %}
             <input type="number" value="{{ prompt.id }}" name="id" style="display:none" />
             <input type="text" value="prompt" name="prompt_or_example" style="display:none" />
             <button type="submit" class="edit-prompt-button">
