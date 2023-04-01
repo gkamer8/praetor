@@ -33,18 +33,11 @@
                 {% endif %}
                 <div id="extra-search-form" style="display:none">
                     <br/>
-                    <label for="style-select">Select style:</label>
-                    <select id="style-select" name="style">
-                        <option value="">--Choose a style--</option>
-                        <option value="instruct">Instruct</option>
-                        <option value="chat">Chat</option>
-                    </select>
-                    <br/><br/>
                     <label for="example-search">Search example:</label>
                     <input type="text" id="example-search" name="example" value="{{ request.args.get('example') if request.args.get('example') }}" placeholder="Search example...">
                     <br/><br/>
-                    <label for="example-search">Tag:</label>
-                    <input type="text" id="tags-search" name="tags" value="{{ request.args.get('tags') if request.args.get('tags') }}" placeholder="Search tag...">
+                    <label for="example-search">Tags:</label>
+                    <input type="text" id="tags-search" name="tags" value="{{ request.args.get('tags') if request.args.get('tags') }}" placeholder="Search tags...">
                 </div>
             </form>
         </div>
@@ -110,14 +103,14 @@
         </div>
     </div>
     <script type="text/javascript">
-        document.getElementById('style-select').value = "{{ request.args.get('style') if request.args.get('style') }}";
+        // document.getElementById('style-select').value = "{{ request.args.get('style') if request.args.get('style') }}";
         
         if(document.getElementById('example-search').value != ""){
             document.getElementById('extra-search-form').style.display = "block";
         }
-        if(document.getElementById('style-select').value != ""){
+        /*if(document.getElementById('style-select').value != ""){
             document.getElementById('extra-search-form').style.display = "block";
-        }
+        }*/
         if(document.getElementById('tags-search').value != ""){
             document.getElementById('extra-search-form').style.display = "block";
         }

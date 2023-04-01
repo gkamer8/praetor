@@ -5,6 +5,7 @@ from flask import (
 )
 from app.db import get_db
 from app.db_wrappers import search_prompts
+from app.utils import tag_string_to_list
 
 bp = Blueprint('home', __name__)
 
@@ -24,12 +25,10 @@ def manifest():
         offset = 0
 
     content_arg = request.args.get("content")
-    style_arg = request.args.get("style")
     example_arg = request.args.get("example")
     tags_arg = request.args.get("tags")
+    tags_arg = tag_string_to_list(tags_arg)
 
-    prompts, total_results = search_prompts(db, limit, offset, content_arg, style_arg, example_arg, tags_arg)
-
-    print(prompts)
+    prompts, total_results = search_prompts(db, limit, offset, content_arg, example_arg, tags_arg)
 
     return render_template('manifest.html', prompts=prompts, page_size=limit, total_results=total_results)

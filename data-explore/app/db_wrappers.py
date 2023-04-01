@@ -10,6 +10,8 @@ All functions that depend on the peculiarities of the database
 
 """
 
+# EXAMPLES
+
 def add_example(db, prompt_id, completion, tags):
     c = db.cursor()
     c.execute("INSERT INTO examples (completion, prompt_id) VALUES (?, ?)", (completion, prompt_id))
@@ -39,6 +41,8 @@ def update_example(db, example_id, completion, tags):
     db.commit()
     return example_id
 
+
+# PROMPTS
 
 def delete_prompt(db, prompt_id):
 
@@ -304,23 +308,49 @@ def export_background(db, **kwargs):
         db.commit()
         print(f"Error occurred: {e}")
 
-def search_prompts(db, limit, offset, content_arg, style_arg, example_arg, tags_arg):
+def search_prompts(db, limit, offset, content_arg, example_arg, tags_arg):
     
     offset = 0 if not offset else offset
     limit = 100 if not limit else limit
     content_arg = "%" if not content_arg else "%" + content_arg + "%"
+    
+    x = "" if example_arg else "LEFT"
+    example_arg = "%" if not example_arg else "%" + example_arg + "%"
 
-    sql = """
-        SELECT prompts.*, prompt_values.*, COUNT(*) OVER() AS total_results
-        FROM prompts
-        JOIN prompt_values ON prompts.id = prompt_values.prompt_id
-        JOIN styles ON prompts.style = styles.id AND prompt_values.key = styles.preview_key
-        WHERE prompt_values.value LIKE ?
-        LIMIT ?
-        OFFSET ?
+    args = [example_arg]
+
+    tag_query_str = ""
+    if tags_arg:
+        tag_query_str = f"JOIN tags ON prompts.id = tags.prompt_id AND ("
+        for i, tag in enumerate(tags_arg):
+            tag_query_str += f"tags.value LIKE ?"
+            args.append(tag)
+            if i < len(tags_arg) - 1:
+                tag_query_str += " OR "
+        tag_query_str += ")"
+
+    args.extend([content_arg, limit, offset])
+
+    sql = f"""
+        WITH main_search AS
+        (
+            SELECT DISTINCT prompts.*, prompt_values.*, COUNT(*) OVER() AS total_results
+            FROM prompts
+            JOIN prompt_values ON prompts.id = prompt_values.prompt_id
+            JOIN styles ON prompts.style = styles.id AND prompt_values.key = styles.preview_key
+            {x} JOIN examples ON prompts.id = examples.prompt_id AND examples.completion LIKE ?
+            {tag_query_str}
+            WHERE prompt_values.value LIKE ?
+            LIMIT ?
+            OFFSET ?
+        )
+        SELECT main_search.*, GROUP_CONCAT(t.value) AS tags
+        FROM main_search
+        LEFT JOIN tags t ON main_search.prompt_id = t.prompt_id
+        GROUP BY main_search.id
     """
 
-    results = db.execute(sql, (content_arg, limit, offset))
+    results = db.execute(sql, tuple(args))
     fetched = results.fetchall()
     total_results = 0 if len(fetched) == 0 else fetched[0]['total_results']
     return fetched, total_results
