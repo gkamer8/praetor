@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS styles;
 DROP TABLE IF EXISTS projects;
 DROP TABLE IF EXISTS tags;
 DROP TABLE IF EXISTS prompt_values;
+DROP TABLE IF EXISTS style_keys;
 
 CREATE TABLE examples (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -115,7 +116,7 @@ VALUES ("output",
         );
 
 INSERT INTO prompts (style, project_id)
-VALUES ("instruct",
+VALUES (1,
         1
         );
 

@@ -29,7 +29,7 @@ def view():
             tags = tags.replace(" ", "").split(",")
             update_prompt(db, prompt_id, new_prompt_values, tags)
         elif update_type == "delete_prompt":
-            pass
+            delete_prompt(db, prompt_id)
 
         """
         prompt = request.form.get('prompt')
@@ -68,10 +68,16 @@ def view():
         """
 
     prompt_dict = get_prompt_by_id(db, prompt_id)
-    tags = get_tags_by_prompt_id(db, prompt_id)
-    prompt_values = get_prompt_values_by_prompt_id(db, prompt_id)
-    completions = get_examples_by_prompt_id(db, prompt_id)
-    style = get_style_by_id(db, prompt_dict['style'])
-    tags_str = ",".join([tag['value'] for tag in tags])
+    tags = None
+    prompt_values = None
+    completions = None
+    style = None
+    tags_str = None
+    if prompt_dict:
+        tags = get_tags_by_prompt_id(db, prompt_id)
+        prompt_values = get_prompt_values_by_prompt_id(db, prompt_id)
+        completions = get_examples_by_prompt_id(db, prompt_id)
+        style = get_style_by_id(db, prompt_dict['style'])
+        tags_str = ",".join([tag['value'] for tag in tags])
 
     return render_template('view.html', prompt=prompt_dict, style=style, prompt_values=prompt_values, prompt_tags=tags_str, completions=completions)

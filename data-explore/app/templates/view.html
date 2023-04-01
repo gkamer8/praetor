@@ -33,7 +33,7 @@
                 {{ val.key }} <br/>
                 <textarea name="key.{{ val.key }}" class="completion-editor">{{ val.value }}</textarea> <br/><br/>
             {% endfor %}
-            <input type="text" value="{{ prompt_tags }}" name="tags" /> <br/><br/>
+            Tags: <input type="text" value="{{ prompt_tags }}" name="tags" /> <br/><br/>
             <input type="text" value="update_prompt" name="update_type" style="display:none" />
             <button type="submit" class="edit-prompt-button">
                 Update

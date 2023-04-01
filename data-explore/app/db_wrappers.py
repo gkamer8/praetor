@@ -33,9 +33,16 @@ def delete_example(db, inputs):
     db.execute("DELETE FROM examples WHERE id = ?", (id,))
     db.commit()
 
-def delete_prompt(db, inputs):
-    id = inputs['id']
-    db.execute("DELETE FROM prompts WHERE id = ?", (id,))
+def delete_prompt(db, prompt_id):
+
+    # Remove all tags
+    # Remove all prompt_values
+    # remove associated examples
+
+    db.execute("DELETE FROM prompts WHERE id = ?", (prompt_id,))
+    db.execute("DELETE FROM tags WHERE prompt_id = ?", (prompt_id,))
+    db.execute("DELETE FROM prompt_values WHERE prompt_id = ?", (prompt_id,))
+    db.execute("DELETE FROM examples WHERE prompt_id = ?", (prompt_id,))
     db.commit()
 
 def update_prompt(db, prompt_id, prompt_values, tags):
@@ -56,7 +63,7 @@ def update_prompt(db, prompt_id, prompt_values, tags):
     c.execute(sql, (prompt_id,))
     for tag in tags:
         c.execute("INSERT INTO tags (value, prompt_id) VALUES (?, ?)", (tag, prompt_id))
-        
+
     db.commit()
     return prompt_id
 

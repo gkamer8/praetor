@@ -30,4 +30,6 @@ def manifest():
 
     prompts, total_results = search_prompts(db, limit, offset, content_arg, style_arg, example_arg, tags_arg)
 
+    print(prompts)
+
     return render_template('manifest.html', prompts=prompts, page_size=limit, total_results=total_results)
