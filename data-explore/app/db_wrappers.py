@@ -218,6 +218,7 @@ def export(db, **kwargs):
 
 def export_background(db, **kwargs):
     try:
+        # Note: once this gets updated to remove get_search_query, that function becomes unused
         sql, args = get_search_query(include_examples=True,
                                     columns_str="p.prompt AS prompt, e.completion AS completion",
                                     **kwargs)
@@ -281,27 +282,24 @@ def export_background(db, **kwargs):
 
 def search_prompts(db, limit, offset, content_arg, style_arg, example_arg, tags_arg):
     
-    kwargs = {
-        'limit': limit,
-        'offset': offset,
-        'content': content_arg,
-        'style': style_arg,
-        'example': example_arg,
-        'tags': tags_arg
-    }
+    offset = 0 if not offset else offset
+    limit = 100 if not limit else limit
+    content_arg = "%" if not content_arg else "%" + content_arg + "%"
 
-    sql, args = get_search_query(count_only=True, **kwargs)
-    total = db.execute(
-                sql, args
-            ).fetchall()
-    total_results = total[0]['nresults']
+    sql = """
+        SELECT prompts.*, prompt_values.*, COUNT(*) OVER() AS total_results
+        FROM prompts
+        JOIN prompt_values ON prompts.id = prompt_values.prompt_id
+        JOIN styles ON prompts.style = styles.id AND prompt_values.key = styles.preview_key
+        WHERE prompt_values.value LIKE ?
+        LIMIT ?
+        OFFSET ?
+    """
 
-    sql, args = get_search_query(**kwargs)
-    prompts = db.execute(
-                sql, args
-            ).fetchall()
-
-    return prompts, total_results
+    results = db.execute(sql, (content_arg, limit, offset))
+    fetched = results.fetchall()
+    total_results = 0 if len(fetched) == 0 else fetched[0]['total_results']
+    return fetched, total_results
 
 
 def get_tasks(db):

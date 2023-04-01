@@ -65,7 +65,7 @@
             {% for row in prompts %}
             <tr>
                 <td><a href="/view?prompt_id={{ row.id }}"> View </a></td>
-                <td>{{ row.prompt }}</td>
+                <td>{{ row.value }}</td>
                 <td>{{ row.tags }}</td>
             </tr>
             {% endfor %}
