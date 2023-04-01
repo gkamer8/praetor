@@ -16,14 +16,6 @@ def view():
 
     db = get_db()
 
-    prompt_dict = get_prompt_by_id(db, prompt_id)
-    tags = get_tags_by_prompt_id(db, prompt_id)
-    prompt_values = get_prompt_values_by_prompt_id(db, prompt_id)
-    completions = get_examples_by_prompt_id(db, prompt_id)
-    style = get_style_by_id(db, prompt_dict['style'])
-
-    tags_str = ",".join([tag['value'] for tag in tags])
-
     if request.method == "POST":
 
         update_type = request.form.get("update_type")
@@ -35,7 +27,7 @@ def view():
                     new_prompt_values[key[4:]] = value
             tags = request.form.get("tags")
             tags = tags.replace(" ", "").split(",")
-            update_prompt(db, new_prompt_values, tags)
+            update_prompt(db, prompt_id, new_prompt_values, tags)
         elif update_type == "delete_prompt":
             pass
 
@@ -74,5 +66,12 @@ def view():
                     inputs['id'] = id
                 add_or_update_example(db, inputs)
         """
+
+    prompt_dict = get_prompt_by_id(db, prompt_id)
+    tags = get_tags_by_prompt_id(db, prompt_id)
+    prompt_values = get_prompt_values_by_prompt_id(db, prompt_id)
+    completions = get_examples_by_prompt_id(db, prompt_id)
+    style = get_style_by_id(db, prompt_dict['style'])
+    tags_str = ",".join([tag['value'] for tag in tags])
 
     return render_template('view.html', prompt=prompt_dict, style=style, prompt_values=prompt_values, prompt_tags=tags_str, completions=completions)

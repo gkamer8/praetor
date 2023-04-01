@@ -38,12 +38,27 @@ def delete_prompt(db, inputs):
     db.execute("DELETE FROM prompts WHERE id = ?", (id,))
     db.commit()
 
-def update_prompt(db, input_dict):
+def update_prompt(db, prompt_id, prompt_values, tags):
     c = db.cursor()
-    c.execute("UPDATE prompts SET prompt = ?, tags = ?, style = ? WHERE id = ?", (input_dict['prompt'], input_dict['tags'], input_dict['style'], input_dict['id']))
-    item_id = c.lastrowid
+
+    # Update prompt values
+    for key in prompt_values:
+        sql = """
+            UPDATE prompt_values SET value = ? WHERE prompt_id = ? AND key = ?
+        """
+        c.execute(sql, (prompt_values[key], prompt_id, key))
+    # Update tags
+    # Remove all prior tags
+    sql = """
+        DELETE FROM tags
+        WHERE prompt_id = ?
+    """
+    c.execute(sql, (prompt_id,))
+    for tag in tags:
+        c.execute("INSERT INTO tags (value, prompt_id) VALUES (?, ?)", (tag, prompt_id))
+        
     db.commit()
-    return item_id
+    return prompt_id
 
 # Adds prompt to database and returns that prompt's id
 def add_prompt(db, **kwargs):
@@ -52,11 +67,6 @@ def add_prompt(db, **kwargs):
     keys = kwargs['keys']
     project_id = kwargs['project_id']
     style_id = kwargs['style_id']
-
-    # TODO
-    # Add tags to tags table
-    # Add prompt with corresponding project id and style id
-    # Add key values to prompt_values
 
     c = db.cursor()
 
