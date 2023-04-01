@@ -64,7 +64,7 @@ def add_prompt(db, **kwargs):
     prompt_id = c.lastrowid
 
     for t in tags:
-        c.execute("INSERT INTO tags (value, prompt_id) VALUES (?, ?)", (prompt_id, t))
+        c.execute("INSERT INTO tags (value, prompt_id) VALUES (?, ?)", (t, prompt_id))
 
     for k in keys:
         c.execute("INSERT INTO prompt_values (prompt_id, key, value) VALUES (?, ?, ?)", (prompt_id, k, keys[k]))

@@ -26,7 +26,6 @@
         Prompt
         </h2>
         <form action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}" method="POST">
-            
             <span>
                 Prompt Style: <a href="style?id={{ style.id }}">{{ style.id_text }}</a>
             </span> <br/><br/>
@@ -34,15 +33,14 @@
                 {{ val.key }} <br/>
                 <textarea name="key.{{ val.key }}" class="completion-editor">{{ val.value }}</textarea> <br/><br/>
             {% endfor %}
-            <input type="number" value="{{ prompt.id }}" name="id" style="display:none" />
-            <input type="text" value="prompt" name="prompt_or_example" style="display:none" />
+            <input type="text" value="{{ prompt_tags }}" name="tags" /> <br/><br/>
+            <input type="text" value="update_prompt" name="update_type" style="display:none" />
             <button type="submit" class="edit-prompt-button">
                 Update
             </button>
         </form>
         <form action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}" method="POST">
-            <input type="number" value="{{ prompt.id }}" name="id" style="display:none" />
-            <input type="text" value="prompt" name="prompt_or_example" style="display:none" />
+            <input type="text" value="delete_prompt" name="update_type" style="display:none" />
             <button type="submit" class="delete-button">
                 Delete
             </button>
