@@ -5,7 +5,8 @@ from flask import (
     request
 )
 from app.db import get_db
-from app.db_wrappers import add_or_update_example, delete_example, get_examples_by_prompt_id, get_prompt_by_id, get_prompt_values_by_prompt_id, get_style_by_id, get_tags_by_prompt_id, update_prompt, delete_prompt
+from app.db_wrappers import add_example, delete_example, update_example, get_examples_by_prompt_id, get_prompt_by_id, get_prompt_values_by_prompt_id, get_style_by_id, get_tags_by_prompt_id, update_prompt, delete_prompt
+from app.utils import tag_string_to_list
 
 bp = Blueprint('view', __name__)
 
@@ -26,46 +27,24 @@ def view():
                 if key.find("key.") == 0:
                     new_prompt_values[key[4:]] = value
             tags = request.form.get("tags")
-            tags = tags.replace(" ", "").split(",")
+            tags = tag_string_to_list(tags)
             update_prompt(db, prompt_id, new_prompt_values, tags)
         elif update_type == "delete_prompt":
             delete_prompt(db, prompt_id)
-
-        """
-        prompt = request.form.get('prompt')
-        tags = request.form.get("tags")
-        id = request.form.get("id")
-        style = request.form.get('style')
-        txt = request.form.get("completion")
-
-        prompt_or_example = request.form.get("prompt_or_example")
-        if prompt_or_example == 'prompt':
-            # Am I deleting?
-            if not (tags or style or prompt):
-                delete_prompt(db, {'id': id})
-            else:
-                inputs = {
-                    'prompt': prompt,
-                    'tags': tags,
-                    'id': id,
-                    'style': style
-                }
-                update_prompt(db, inputs)
-        elif prompt_or_example == 'example':
-            txt = request.form.get("completion")
-            # no txt, assume it means delete
-            if not txt:
-                delete_example(db, {'id': id})
-            else:
-                inputs = {
-                    'completion': txt,
-                    'tags': tags,
-                    'prompt_id': prompt_id
-                }
-                if id:
-                    inputs['id'] = id
-                add_or_update_example(db, inputs)
-        """
+        elif update_type == "add_completion":
+            completion = request.form.get("completion")
+            tags = request.form.get("tags")
+            tags = tag_string_to_list(tags)
+            add_example(db, prompt_id, completion, tags)
+        elif update_type == "update_completion":
+            example_id = request.form.get("id")
+            completion = request.form.get("completion")
+            tags = request.form.get("tags")
+            tags = tag_string_to_list(tags)
+            update_example(db, example_id, completion, tags)
+        elif update_type == "delete_completion":
+            example_id = request.form.get("id")
+            delete_example(db, example_id)
 
     prompt_dict = get_prompt_by_id(db, prompt_id)
     tags = None
@@ -75,9 +54,11 @@ def view():
     tags_str = None
     if prompt_dict:
         tags = get_tags_by_prompt_id(db, prompt_id)
-        prompt_values = get_prompt_values_by_prompt_id(db, prompt_id)
-        completions = get_examples_by_prompt_id(db, prompt_id)
-        style = get_style_by_id(db, prompt_dict['style'])
         tags_str = ",".join([tag['value'] for tag in tags])
+
+        prompt_values = get_prompt_values_by_prompt_id(db, prompt_id)
+        style = get_style_by_id(db, prompt_dict['style'])
+
+        completions = get_examples_by_prompt_id(db, prompt_id, with_tags=True)
 
     return render_template('view.html', prompt=prompt_dict, style=style, prompt_values=prompt_values, prompt_tags=tags_str, completions=completions)

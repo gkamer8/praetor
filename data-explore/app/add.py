@@ -6,6 +6,7 @@ from flask import (
 )
 from app.db import get_db
 from app.db_wrappers import add_prompt, add_bulk, get_project_by_id, get_style_by_id, get_styles_by_project_id, get_keys_by_style_id
+from app.utils  import tag_string_to_list
 import json
 
 bp = Blueprint('add', __name__)
@@ -54,7 +55,7 @@ def add():
             keys = {x['name']: request.form.get("key." + x['name']) for x in style_keys}
             tags = request.form.get("tags")
             if tags:
-                tags = tags.replace(" ", "").split(",")
+                tags = tag_string_to_list(tags)
             else:
                 tags = []
             id = add_prompt(db, keys=keys, tags=tags, project_id=project_id, style_id=style_id)

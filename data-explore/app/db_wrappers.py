@@ -10,28 +10,35 @@ All functions that depend on the peculiarities of the database
 
 """
 
-# Adds example to database and returns that example's id
-def add_or_update_example(db, input_dict):
-    txt = input_dict['completion']
-    tags = input_dict['tags']
-    prompt_id = input_dict['prompt_id']
+def add_example(db, prompt_id, completion, tags):
     c = db.cursor()
-
-    if 'id' in input_dict:
-        item_id = input_dict['id']
-        c.execute("UPDATE examples SET completion = ?, tags = ? WHERE id = ?", (txt, tags, item_id))
-        db.commit()
-    else:
-        c.execute("INSERT INTO examples (completion, tags, prompt_id) VALUES (?, ?, ?)", (txt, tags, prompt_id))
-        item_id = c.lastrowid
-        db.commit()
+    c.execute("INSERT INTO examples (completion, prompt_id) VALUES (?, ?)", (completion, prompt_id))
+    item_id = c.lastrowid
+    
+    # Add tags
+    for tag in tags:
+        c.execute("INSERT INTO tags (example_id, value) VALUES (?, ?)", (item_id, tag))
+    db.commit()
     return item_id
 
 
-def delete_example(db, inputs):
-    id = inputs['id']
-    db.execute("DELETE FROM examples WHERE id = ?", (id,))
+def delete_example(db, example_id):
+    db.execute("DELETE FROM examples WHERE id = ?", (example_id,))
     db.commit()
+
+
+def update_example(db, example_id, completion, tags):
+    c = db.cursor()
+
+    # Remove all tags
+    c.execute("DELETE FROM tags WHERE example_id = ?", (example_id,))
+    # Update text
+    c.execute("UPDATE examples SET completion = ? WHERE id = ?", (completion, example_id))
+    for t in tags:
+        c.execute("INSERT INTO tags (example_id, value) VALUES (?, ?)", (example_id, t))
+    db.commit()
+    return example_id
+
 
 def delete_prompt(db, prompt_id):
 
@@ -347,10 +354,19 @@ def get_prompt_by_id(db, id):
     prompt = db.execute(sql, (id,))
     return prompt.fetchone()
 
-def get_examples_by_prompt_id(db, prompt_id):
-    sql = """
-        SELECT * FROM examples WHERE prompt_id = ?
-    """
+def get_examples_by_prompt_id(db, prompt_id, with_tags=True):
+    if with_tags:
+        sql = """
+        SELECT e.*, GROUP_CONCAT(t.value) AS tags
+        FROM examples e
+        LEFT JOIN tags t ON e.id = t.example_id
+        WHERE e.prompt_id = ?
+        GROUP BY e.id
+        """
+    else:
+        sql = """
+            SELECT * FROM examples WHERE prompt_id = ?
+        """
     examples = db.execute(sql, (prompt_id,))
     return examples.fetchall()
 

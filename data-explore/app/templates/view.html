@@ -61,7 +61,7 @@
                 <input type="text" placeholder="comma,separated,tags" name="tags" />
                 <br/>
                 <br/>
-                <input type="text" value="example" name="prompt_or_example" style="display:none" />
+                <input type="text" value="add_completion" name="update_type" style="display:none" />
                 <button type="submit">Submit</button>
             </form>
         </div>
@@ -81,14 +81,14 @@
                     Tags: <input type="text" name="tags" value="{{ row.tags }}" />
                 </div>
                 <input type="number" value="{{ row.id }}" name="id" style="display:none" />
-                <input type="text" value="example" name="prompt_or_example" style="display:none" />
+                <input type="text" value="update_completion" name="update_type" style="display:none" />
                 <button type="submit" class="edit-completion-button">
                     Update
                 </button>
             </form>
             <form action="{{ url_for(request.endpoint, prompt_id=request.args.get('prompt_id'), **request.view_args) }}" method="POST">
                 <input type="number" value="{{ row.id }}" name="id" style="display:none" />
-                <input type="text" value="example" name="prompt_or_example" style="display:none" />
+                <input type="text" value="delete_completion" name="update_type" style="display:none" />
                 <button type="submit" class="delete-button">
                     Delete
                 </button>
