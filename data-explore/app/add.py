@@ -18,6 +18,9 @@ def add():
 
     if request.method == "POST":
 
+        project_id = request.form.get('project_id')
+        style_id = request.form.get('style_id')
+
         # Was it a bulk upload?
         file = request.files.get('file')
         if file:
@@ -26,24 +29,11 @@ def add():
             # btw this is probably a security vulnerability
             # Probably should check for filesize as well
             data = json.loads(file_contents)
-
-            # Optional
-            key_tags = request.form.get("key_tags")
-            if not key_tags:
-                key_tags = None
-            options = {
-                'key_completion': request.form.get("key_completion"),
-                'key_prompt': request.form.get("key_prompt"),
-                'key_tags': request.form.get("key_tags"),
-                'tags': request.form.get("tags"),
-                'style': request.form.get("style"),
-            }
-            add_bulk(get_db(), data, options)
+            tags = request.form.get("tags")
+            tags = tag_string_to_list(tags)
+            res = add_bulk(db, data, tags, project_id, style_id)
             return redirect("/tasks")
         else:
-            project_id = request.form.get('project_id')
-            style_id = request.form.get('style_id')
-
             style_keys = get_keys_by_style_id(db, style_id)
             style = get_style_by_id(db, style_id)
 

@@ -25,7 +25,7 @@ CREATE TABLE tags (
 
 CREATE TABLE prompts (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `style` TEXT,  /* Should match a style id_text */
+  `style` INTEGER,
   `project_id` INTEGER,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

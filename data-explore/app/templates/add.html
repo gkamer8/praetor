@@ -38,28 +38,11 @@
             </h2>
             <input type="file" name="file"> <br/><br/>
             <span>
-                Completion Key:
-            </span>
-            <input type="text" value="output" name="key_completion"> <br/><br/>
-            <span>
-                Prompt Key:
-            </span>
-            <input type="text" value="instruction" name="key_prompt"> <br/><br/>
-            <span>
-                Prompt Style:
-            </span>
-            <select name="style">
-                <option value="instruct" selected>Instruct</option>
-                <option value="chat">Chat</option>
-            </select> <br/><br/>
-            <span>
                 Tags:
             </span>
             <input type="text" placeholder="comma,sep,tags" name="tags"> <br/><br/>
-            <span>
-                Tags Key:
-            </span>
-            <input type="text" placeholder="key for tags (optional)" name="key_tags"> <br/><br/>
+            <input type="text" style="display:none" value="{{ project.id }}" name="project_id" />
+            <input type="text" style="display:none" value="{{ style.id }}" name="style_id" />
             <input type="submit" value="Upload">
         </form>
     </div>

@@ -33,7 +33,7 @@
                 {{ val.key }} <br/>
                 <textarea name="key.{{ val.key }}" class="completion-editor">{{ val.value }}</textarea> <br/><br/>
             {% endfor %}
-            Tags: <input type="text" value="{{ prompt_tags }}" name="tags" /> <br/><br/>
+            Tags: <input type="text" value="{{ prompt_tags if prompt_tags }}" name="tags" /> <br/><br/>
             <input type="text" value="update_prompt" name="update_type" style="display:none" />
             <button type="submit" class="edit-prompt-button">
                 Update
@@ -78,7 +78,7 @@
                     textarea.style.height = textarea.scrollHeight + "px";
                 </script>
                 <div>
-                    Tags: <input type="text" name="tags" value="{{ row.tags }}" />
+                    Tags: <input type="text" name="tags" value="{{ row.tags if row.tags }}" />
                 </div>
                 <input type="number" value="{{ row.id }}" name="id" style="display:none" />
                 <input type="text" value="update_completion" name="update_type" style="display:none" />

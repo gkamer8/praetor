@@ -1,5 +1,6 @@
 import multiprocessing
 import json
+from multiprocessing.sharedctypes import Value
 import os
 from app.db import SQLiteJSONEncoder
 from flask import current_app
@@ -101,75 +102,107 @@ def add_prompt(db, **kwargs):
     return prompt_id
 
 # Takes data and inserts prompts and examples
-# Data is a list of dictionaries 
-"""
-options takes:
-- (optional) tags (additional tags to append to each prompt and example)
-- (required) style (for the prompts)
-- (required) key_continuation (what key to use for the coninuation)
-- (required) key_prompt (what key to use for the prompt)
-- (optional) key_tags (what key to use for both prompt and example tags)
-"""
-def add_bulk(db, data, options):
-    p = multiprocessing.Process(target=add_bulk_background, args=(db, data, options))
+# Data is a list of dictionaries (i.e. json data)
+# tags is a list
+def add_bulk(db, data, tags, project_id, style_id):
+    c = db.cursor()
+    sql = """
+        INSERT INTO tasks (`type`, `status`)
+        VALUES ("bulk_upload",
+                "in_progress"
+                );
+    """
+    c.execute(sql)
+    task_id = c.lastrowid
+    db.commit()
+
+    p = multiprocessing.Process(target=add_bulk_background, args=(db, task_id, data, tags, project_id, style_id))
     p.start()
 
     sql = """
-        INSERT INTO tasks (`type`, `status`, `pid`)
-        VALUES ("bulk_upload",
-                "in_progress",
-                ?
-                );
+        UPDATE tasks
+        SET pid = ?
+        WHERE id = ?
     """
-    db.execute(sql, (p.pid,))
-    db.commit()
+    db.execute(sql, (p.pid, task_id))
+
     status = {
         'pid': p.pid,
         'status': 'in_progress'
     }
     return status
 
-
-def add_bulk_background(db, data, options):
+# NOTE: doesn't support example tags yet or multiple examples per prompt
+def add_bulk_background(db, task_id, data, tags, project_id, style_id):
     try:
-        key_completion = options['key_completion']
-        key_prompt = options['key_prompt']
-        key_tags = None if 'key_tags' not in options else options['key_tags']
-        style = options['style']
         c = db.cursor()
+
+        # Get the correct keys and note which is the completion key
+        sql = """
+            SELECT * FROM style_keys
+            WHERE style_id = ?
+        """
+        res = c.execute(sql, (style_id,))
+        style_keys = res.fetchall()
+
+        # Get the style
+        sql = """
+            SELECT * FROM styles
+            WHERE id = ?
+        """
+        res = c.execute(sql, (style_id))
+        style_info = res.fetchone()
+
+        completion_key = style_info['completion_key']
+
+        prompt_values_keys = [x['name'] for x in style_keys if x['name'] != completion_key]
+        db.commit()
+
         for item in data:
-            prompt = item[key_prompt]
-            existing_prompt = c.execute(
-                'SELECT * FROM prompts WHERE prompt LIKE ?', (prompt,)
-            ).fetchone()
-            
-            if existing_prompt:
-                row_id = c.lastrowid
-            else:
-                tags = options['tags'] + (("," + item[key_tags]) if key_tags else "")
-                c.execute("INSERT INTO prompts (prompt, tags, style) VALUES (?, ?, ?)", (prompt, tags, style))
-                row_id = c.lastrowid
-            
-            # Now add example
-            txt = item[key_completion]
-            tags = options['tags'] + (("," + item[key_tags]) if key_tags else "")
-            c.execute("INSERT INTO examples (completion, tags, prompt_id) VALUES (?, ?, ?)", (txt, tags, row_id))
+
+            # Add new prompt
+            sql = """
+                INSERT INTO prompts (style, project_id) VALUES (?, ?)
+            """
+            c.execute(sql, (style_id, project_id))
+            prompt_id = c.lastrowid
+
+            # Add examples and prompt values
+            for key in item:
+                if key == completion_key:
+                    sql = """
+                        INSERT INTO examples (prompt_id, completion) VALUES (?, ?)
+                    """
+                    c.execute(sql, (prompt_id, item[key]))
+                elif key in prompt_values_keys:  # need to avoid tags, other irrelevant values
+                    sql = """
+                        INSERT INTO prompt_values (prompt_id, key, value) VALUES (?, ?, ?)
+                    """
+                    c.execute(sql, (prompt_id, key, item[key]))
+
+            # Add tags to prompt
+            for tag in tags:
+                sql = """
+                    INSERT INTO tags (prompt_id, value) VALUES (?, ?)
+                """
+                c.execute(sql, (prompt_id, tag))
+
             db.commit()
 
         sql = """
             UPDATE tasks
             SET status = 'completed'
-            WHERE pid = ?;
+            WHERE id = ?
         """
-        db.execute(sql, (os.getpid(),))
+        db.execute(sql, (task_id,))
         db.commit()
     except:
         sql = """
-            UPDATE tasks
-            SET status = 'failed'
-            WHERE pid = ?;
+        UPDATE tasks
+        SET status = 'failed'
+        WHERE id = ?;
         """
-        db.execute(sql, (os.getpid(),))
+        db.execute(sql, (task_id,))
         db.commit()
 
 
@@ -308,7 +341,7 @@ def export_background(db, **kwargs):
         db.commit()
         print(f"Error occurred: {e}")
 
-def search_prompts(db, limit, offset, content_arg, example_arg, tags_arg):
+def search_prompts(db, limit=None, offset=None, content_arg=None, example_arg=None, tags_arg=None):
     
     offset = 0 if not offset else offset
     limit = 100 if not limit else limit
@@ -334,20 +367,20 @@ def search_prompts(db, limit, offset, content_arg, example_arg, tags_arg):
     sql = f"""
         WITH main_search AS
         (
-            SELECT DISTINCT prompts.*, prompt_values.*, COUNT(*) OVER() AS total_results
+            SELECT DISTINCT prompts.*, prompt_values.*
             FROM prompts
             JOIN prompt_values ON prompts.id = prompt_values.prompt_id
             JOIN styles ON prompts.style = styles.id AND prompt_values.key = styles.preview_key
             {x} JOIN examples ON prompts.id = examples.prompt_id AND examples.completion LIKE ?
             {tag_query_str}
             WHERE prompt_values.value LIKE ?
-            LIMIT ?
-            OFFSET ?
         )
-        SELECT main_search.*, GROUP_CONCAT(t.value) AS tags
+        SELECT main_search.*, GROUP_CONCAT(t.value) AS tags, COUNT(*) OVER() AS total_results
         FROM main_search
         LEFT JOIN tags t ON main_search.prompt_id = t.prompt_id
         GROUP BY main_search.id
+        LIMIT ?
+        OFFSET ?
     """
 
     results = db.execute(sql, tuple(args))
