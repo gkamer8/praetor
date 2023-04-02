@@ -2,8 +2,10 @@ import multiprocessing
 import json
 from multiprocessing.sharedctypes import Value
 import os
+from unicodedata import name
 from app.db import SQLiteJSONEncoder
 from flask import current_app
+import re
 
 """
 
@@ -205,70 +207,42 @@ def add_bulk_background(db, task_id, data, tags, project_id, style_id):
         db.execute(sql, (task_id,))
         db.commit()
 
+"""
 
-def get_search_query(count_only=False, include_examples=False, columns_str="*", **kwargs):
-    
-    content = "%"
-    style = "%"
-    tags = "%"
-    example = "%"
+Will export a json file, which is a list of dictionaries with each key matching
+   a named argument in the template format string.
+All named arguments are present in every dictionary.
+Does not include tags at the moment.
 
-    find_example1 = ""
-    find_example2 = ""
-    if 'content' in kwargs and kwargs['content']:
-        content = "%" + kwargs['content'] + "%"
-    if 'style' in kwargs and kwargs['style']:
-        style = "%" + kwargs['style'] + "%"
-    if 'tags' in kwargs and kwargs['tags']:
-        tags = "%" + kwargs['tags'] + "%"
+If filename is None or "", the filename becomes "export.json"
 
-    args = [content, style, tags]
+"""
+def export(db, filename, tags=[], content="", example=""):
 
-    search_for_example = ('example' in kwargs and kwargs['example'])
-    if include_examples or search_for_example:
-        if search_for_example:
-            example = "%" + kwargs['example'] + "%"
-        find_example1 = """JOIN examples AS e
-                ON p.id = e.prompt_id"""
-        find_example2 = "AND e.completion LIKE ?"
-        args.append(example)
+    if not filename:
+        filename = "export.json"
 
-    limit_str = ""
-    offset_str = ""
-    if not count_only and 'limit' in kwargs and kwargs['limit']:
-        args.append(kwargs['limit'])
-        limit_str = f"LIMIT ?"
-    if not count_only and 'offset' in kwargs and kwargs['offset']:
-        args.append(kwargs['offset'])
-        offset_str = f"OFFSET ?"
-    
-    
-    columns = "COUNT(*) as nresults" if count_only else columns_str
-    sql = f"""SELECT {columns}
-                FROM prompts AS p
-                {find_example1}
-                WHERE p.prompt LIKE ? 
-                AND p.style LIKE ? 
-                AND p.tags LIKE ? 
-                {find_example2}
-                {limit_str}
-                {offset_str}
-            """
-    return sql, args
+    c = db.cursor()
+    sql = """
+        INSERT INTO tasks (`type`, `status`)
+        VALUES ("export",
+                "in_progress"
+                );
+    """
+    c.execute(sql)
+    db.commit()
 
+    task_id = c.lastrowid
 
-def export(db, **kwargs):
-    p = multiprocessing.Process(target=export_background, args=(db,), kwargs=kwargs)
+    p = multiprocessing.Process(target=export_background, args=(db, task_id, filename, content, tags, example))
     p.start()
 
     sql = """
-        INSERT INTO tasks (`type`, `status`, `pid`)
-        VALUES ("export",
-                "in_progress",
-                ?
-                );
+        UPDATE tasks SET `pid` = ?
+        WHERE id = ?
     """
-    db.execute(sql, (p.pid,))
+    c.execute(sql, (p.pid, task_id))
+
     db.commit()
     status = {
         'pid': p.pid,
@@ -276,43 +250,93 @@ def export(db, **kwargs):
     }
     return status
 
+def export_background(db, task_id, filename, content, tags, example):
 
-def export_background(db, **kwargs):
+    # The try catch is probably not compehensive
+    # There should be an option for the user to check on the program itself (via its pid)
     try:
-        # Note: once this gets updated to remove get_search_query, that function becomes unused
-        sql, args = get_search_query(include_examples=True,
-                                    columns_str="p.prompt AS prompt, e.completion AS completion",
-                                    **kwargs)
+        # NOTE: the named arguments can be escaped
+        def get_named_arguments(fmt_string):
+            pattern = re.compile(r'{(?P<name>\w+)}')
+            return pattern.findall(fmt_string)
 
-        cursor = db.cursor()
-        # Execute query
-        cursor.execute(sql, args)
+        if not example:
+            example = "%"
+        if not content:
+            content = "%"
 
-        filename = kwargs['filename']
+        args = [example]
+
+        tag_query_str = ""
+        if tags and len(tags) > 0:
+            tag_query_str = f"JOIN tags ON prompts.id = tags.prompt_id AND ("
+            for i, tag in enumerate(tags):
+                tag_query_str += f"tags.value LIKE ?"
+                args.append(tag)
+                if i < len(tags) - 1:
+                    tag_query_str += " OR "
+            tag_query_str += ")"
+
+        args.append(content)
+
+        # notice that in string, there is no option to put "LEFT" join on examples
+        # this is beacuse we really do only want prompts with examples in this case
+        sql = f"""
+            SELECT DISTINCT prompts.*, styles.template as template, styles.completion_key as completion_key
+            FROM prompts
+            JOIN prompt_values ON prompts.id = prompt_values.prompt_id
+            JOIN styles ON prompts.style = styles.id AND prompt_values.key = styles.preview_key
+            JOIN examples ON prompts.id = examples.prompt_id AND examples.completion LIKE ?
+            {tag_query_str}
+            WHERE prompt_values.value LIKE ?
+            LIMIT 10
+        """
+        c = db.cursor()
+        res = c.execute(sql, tuple(args))
+        prompts = res.fetchall()
+
         path = os.path.join(current_app.config.get('EXPORTS_PATH'), filename)
-
-
-        completion_key = kwargs['completion_key'] if 'completion_key' in kwargs else "output"
-        prompt_key = kwargs['prompt_key'] if 'prompt_key' in kwargs else "instruction"
-
         fhand = open(path, 'w')
         fhand.write('[\n')
 
         encoder = SQLiteJSONEncoder(indent=4)
-        row = cursor.fetchone()
-        while row is not None:
-            # Serialize row to JSON and write to file
-            row = {prompt_key: row['prompt'], completion_key: row['completion']}
-            json_data = encoder.encode(row)
 
-            fhand.write(json_data)
+        for k, prompt in enumerate(prompts):
+            sql = """
+                SELECT * FROM examples
+                WHERE prompt_id = ?
+            """
+            examples = c.execute(sql, (prompt['id'],)).fetchall()
 
-            # Get next row
-            row = cursor.fetchone()
+            sql = """
+                SELECT * FROM prompt_values
+                WHERE prompt_id = ?
+            """
+            prompt_values = c.execute(sql, (prompt['id'],)).fetchall()
+            prompt_value_kwargs = {x['key']: x['value'] for x in prompt_values}
 
-            # If there are more rows, write a comma after the previous row
-            if row is not None:
-                fhand.write(',\n')
+            template = prompt['template']
+            named_args = get_named_arguments(template)
+
+            kwargs = {}
+            for arg in named_args:
+                if arg in prompt_value_kwargs:
+                    kwargs[arg] = prompt_value_kwargs[arg]
+                elif arg != prompt['completion_key']:
+                    kwargs[arg] = ""
+
+            for i, ex in enumerate(examples):
+                kwargs[prompt['completion_key']] = ex['completion']
+            
+                json_data = encoder.encode(kwargs)
+
+                fhand.write(json_data)
+
+                if i < len(examples) - 1:
+                    fhand.write(",\n")
+            
+            if k < len(prompts) - 1:
+                fhand.write(",\n")
 
         fhand.write(']')
         fhand.close()
@@ -324,13 +348,12 @@ def export_background(db, **kwargs):
         db.execute(sql, (filename,))
 
         sql = """
-                UPDATE tasks
-                SET status = 'completed'
-                WHERE pid = ?;
-            """
-        db.execute(sql, (os.getpid(),))
+                    UPDATE tasks
+                    SET status = 'completed'
+                    WHERE id = ?;
+                """
+        db.execute(sql, (task_id,))
         db.commit()
-
     except Exception as e:
         sql = """
             UPDATE tasks
@@ -353,7 +376,7 @@ def search_prompts(db, limit=None, offset=None, content_arg=None, example_arg=No
     args = [example_arg]
 
     tag_query_str = ""
-    if tags_arg:
+    if tags_arg and len(tags_arg) > 0:
         tag_query_str = f"JOIN tags ON prompts.id = tags.prompt_id AND ("
         for i, tag in enumerate(tags_arg):
             tag_query_str += f"tags.value LIKE ?"

@@ -9,6 +9,7 @@ from flask import (
 )
 from app.db import get_db
 from app.db_wrappers import export, get_exports, get_export_by_id
+from app.utils import tag_string_to_list
 
 bp = Blueprint('exporting', __name__)
 
@@ -18,12 +19,13 @@ def exp():
         filename = request.form.get('filename') if request.form.get('filename') else "export.json"
 
         tags = request.form.get('tags')
-        content = request.form.get('content')
-        style = request.form.get('style')
-        completion_key = request.form.get('completion_key')
-        prompt_key = request.form.get('prompt_key')
+        tags = tag_string_to_list(tags)
 
-        export(get_db(), filename=filename, tags=tags, content=content, style=style, completion_key=completion_key, prompt_key=prompt_key)
+        content = request.form.get('content')
+        # style = request.form.get('style')
+        example = request.form.get('example')
+
+        export(get_db(), filename=filename, tags=tags, content=content, example=example)
         return redirect("/tasks")
 
     return render_template('export.html')

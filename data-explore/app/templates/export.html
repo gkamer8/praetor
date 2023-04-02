@@ -19,13 +19,6 @@
             <input type="text" id="content-search" name="content" placeholder="Prompt content..." value="{{ request.args.get('content') if request.args.get('content') }}">
             <button type="submit">Submit</button>
             <br/><br/>
-            <label for="style-select">Select style:</label>
-            <select id="style-select" name="style">
-                <option value="">--Choose a style--</option>
-                <option value="instruct">Instruct</option>
-                <option value="chat">Chat</option>
-            </select>
-            <br/><br/>
             <label for="example-search">Example content:</label>
             <input type="text" id="example-search" name="example" value="{{ request.args.get('example') if request.args.get('example') }}" placeholder="Search example...">
             <br/><br/>
@@ -37,19 +30,11 @@
             <label for="filename-text">Export filename:</label>
             <input type="text" id="filename-text" name="filename" placeholder="filename.json">
             <br/><br/>
-
-            <label for="prompt-key">Prompt key:</label>
-            <input type="text" id="prompt-key" name="prompt_key" value="instruction">
-            <br/><br/>
-            
-            <label for="completion-key">Completion key:</label>
-            <input type="text" id="completion-key" name="completion_key" value="output">
-            <br/><br/>
             <button type="submit">Submit</button>
         </form>
     </div>
     <script type="text/javascript">
-        document.getElementById('style-select').value = "{{ request.args.get('style') if request.args.get('style') }}";
+        // document.getElementById('style-select').value = "{{ request.args.get('style') if request.args.get('style') }}";
     </script>
 </div>
 {% endblock %}
