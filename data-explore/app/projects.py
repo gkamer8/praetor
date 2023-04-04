@@ -4,12 +4,18 @@ from flask import (
     request
 )
 from app.db import get_db
-from app.db_wrappers import get_projects, get_project_by_id, get_styles_by_project_id
+from app.db_wrappers import get_projects, get_project_by_id, get_styles_by_project_id, add_project
 
 bp = Blueprint('projects', __name__)
 
-@bp.route('/projects', methods=('GET',))
+@bp.route('/projects', methods=('GET', 'POST'))
 def projects():
+
+    if request.method == "POST":
+        name = request.form.get('name')
+        description = request.form.get('description')
+        add_project(get_db(), name, description)
+
     projects = get_projects(get_db())
     return render_template('projects.html', projects=projects)
 

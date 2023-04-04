@@ -504,3 +504,14 @@ def get_prompt_values_by_prompt_id(db, prompt_id):
     """
     vals = db.execute(sql, (prompt_id,))
     return vals.fetchall()
+
+def add_project(db, name, description):
+    sql = """
+        INSERT INTO projects (name, desc)
+        VALUES (?, ?)
+    """
+    c = db.cursor()
+    c.execute(sql, (name, description))
+    proj_id = c.lastrowid
+    db.commit()
+    return proj_id
