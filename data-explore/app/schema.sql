@@ -40,7 +40,6 @@ CREATE TABLE prompt_values (
 CREATE TABLE styles (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `id_text` TEXT,  /* like 'instruct' or 'chat' */
-    `format_string` TEXT,
     `project_id` INTEGER,
     `template` TEXT,
     `completion_key` TEXT,  /* Where the LLM is meant to add */

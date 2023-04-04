@@ -5,7 +5,7 @@ import os
 from unicodedata import name
 from app.db import SQLiteJSONEncoder
 from flask import current_app
-import re
+from app.utils import get_named_arguments
 
 """
 
@@ -255,11 +255,6 @@ def export_background(db, task_id, filename, content, tags, example):
     # The try catch is probably not compehensive
     # There should be an option for the user to check on the program itself (via its pid)
     try:
-        # NOTE: the named arguments can be escaped
-        def get_named_arguments(fmt_string):
-            pattern = re.compile(r'{(?P<name>\w+)}')
-            return pattern.findall(fmt_string)
-
         if not example:
             example = "%"
         if not content:
@@ -458,7 +453,7 @@ def get_examples_by_prompt_id(db, prompt_id, with_tags=True):
 
 def get_projects(db):
     sql = """
-        SELECT * FROM projects
+        SELECT * FROM projects ORDER BY created_at DESC
     """
     examples = db.execute(sql)
     return examples.fetchall()
@@ -515,3 +510,24 @@ def add_project(db, name, description):
     proj_id = c.lastrowid
     db.commit()
     return proj_id
+
+def add_style(db, idtext, format_string, completion_key, preview_key, project_id, style_keys):
+    sql = """
+        INSERT INTO styles (id_text, format_string, completion_key, preview_key, project_id)
+        VALUES (?, ?, ?, ?, ?)
+    """
+    c = db.cursor()
+    c.execute(sql, (idtext, format_string, completion_key, preview_key, project_id))
+    style_id = c.lastrowid
+    db.commit()
+
+    # Now add style keys
+    for key in style_keys:
+        sql = """
+            INSERT INTO style_keys (name, style_id)
+            VALUES (?, ?)
+        """
+        c.execute(sql, (key, style_id))
+    db.commit()
+
+    return style_id

@@ -18,6 +18,41 @@
             {{ project.desc }}
         </div>
         <h2>Styles</h2>
+        <script type="text/javascript">
+            var opened = false;
+            function openAdd(){
+                if (opened){
+                    document.getElementById("add-style").style.display = "none";
+                }
+                else {
+                    document.getElementById("add-style").style.display = "block";
+                }
+                opened = !opened;
+            }
+        </script>
+        <button onclick="openAdd()">Add Style</button>
+        <br/>
+        <br/>
+        <div id="add-style" style="display:none">
+            <form method="post" action="{{ url_for(request.endpoint, **request.args.copy()) }}">
+                <input type="text" placeholder="idtext" name="id_text" />
+                <br/>
+                <br/>
+                <textarea name="format_string" style="width:50%;height:20em" placeholder="Prompt format {string}"></textarea>
+                <br/>
+                <br/>
+                <input type="text" placeholder="completion key" name="completion_key" />
+                <br/>
+                <br/>
+                <input type="text" placeholder="preview key" name="preview_key" />
+                <br/>
+                <br/>
+                <input type="text" value="{{ project.id }}" style="display:none" name="project_id" />
+                <button type="submit">Submit</button>
+            </form>
+            <br/>
+            <br/>
+        </div>
         <table>
             <thead>
                 <tr>
