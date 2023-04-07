@@ -4,6 +4,13 @@
 
 {% block meta %}
 <link rel="stylesheet" href="{{ url_for('static', filename='table.css') }}">
+<style>
+    .add-style-error{
+        background-color: red;
+        padding: .5em;
+        color: white;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -52,6 +59,13 @@
             </form>
             <br/>
             <br/>
+        </div>
+        <div id="add-style-errors">
+            {% for error in errors %}
+                <div class="add-style-error">
+                    Error submitting style: {{error}}
+                </div>
+            {% endfor %}
         </div>
         <table>
             <thead>

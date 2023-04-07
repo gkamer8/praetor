@@ -32,12 +32,29 @@
                 </a>
                 {% endif %}
                 <div id="extra-search-form" style="display:none">
+                    <!-- NOTE: Any additions here should also be added to the export feature! -->
                     <br/>
                     <label for="example-search">Search example:</label>
                     <input type="text" id="example-search" name="example" value="{{ request.args.get('example') if request.args.get('example') }}" placeholder="Search example...">
                     <br/><br/>
                     <label for="example-search">Tags:</label>
                     <input type="text" id="tags-search" name="tags" value="{{ request.args.get('tags') if request.args.get('tags') }}" placeholder="Search tags...">
+                    <br/><br/>
+                    <label for="project-search">Project:</label>
+                    <select name="project_id" id="project-select">
+                        <option value="" selected>--No Project Selected--</option>
+                        {% for proj in projects%}
+                            <option value="{{ proj.id }}">{{ proj.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <br/><br/>
+                    <label for="style-search">Style:</label>
+                    <select name="style_id" id="style-select">
+                        <option value="" selected>--No Style Selected--</option>
+                        {% for style in styles%}
+                            <option value="{{ style.id }}">{{ style.id_text }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
             </form>
         </div>
@@ -103,15 +120,19 @@
         </div>
     </div>
     <script type="text/javascript">
-        // document.getElementById('style-select').value = "{{ request.args.get('style') if request.args.get('style') }}";
-        
+        document.getElementById('project-select').value = "{{ request.args.get('project_id') if request.args.get('project_id') }}";
+        document.getElementById('style-select').value = "{{ request.args.get('style_id') if request.args.get('style_id') }}";
+
         if(document.getElementById('example-search').value != ""){
             document.getElementById('extra-search-form').style.display = "block";
         }
-        /*if(document.getElementById('style-select').value != ""){
+        if(document.getElementById('project-select').value != ""){
             document.getElementById('extra-search-form').style.display = "block";
-        }*/
+        }
         if(document.getElementById('tags-search').value != ""){
+            document.getElementById('extra-search-form').style.display = "block";
+        }
+        if(document.getElementById('style-select').value != ""){
             document.getElementById('extra-search-form').style.display = "block";
         }
 

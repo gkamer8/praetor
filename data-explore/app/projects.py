@@ -25,6 +25,8 @@ def project():
 
     db = get_db()
 
+    errors = []
+
     if request.method == 'POST':
         idtext = request.form.get('id_text')
         format_string = request.form.get('format_string')
@@ -35,11 +37,14 @@ def project():
         style_keys = get_named_arguments(format_string)
 
         # In the future, should throw errors when completion/preview key not in style_keys
-        # TODO
-
-        add_style(db, idtext, format_string, completion_key, preview_key, project_id, style_keys)
+        if completion_key not in style_keys:
+            errors.append("Completion key not in the format string")
+        elif preview_key not in style_keys:
+            errors.append("Preview key not in the format string")
+        else:
+            add_style(db, idtext, format_string, completion_key, preview_key, project_id, style_keys)
 
     project_id = request.args.get("id")
     project = get_project_by_id(get_db(), project_id)
     styles = get_styles_by_project_id(get_db(), project_id)
-    return render_template('project.html', project=project, styles=styles)
+    return render_template('project.html', project=project, styles=styles, errors=errors)

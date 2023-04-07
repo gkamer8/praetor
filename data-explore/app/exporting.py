@@ -8,13 +8,14 @@ from flask import (
     current_app
 )
 from app.db import get_db
-from app.db_wrappers import export, get_exports, get_export_by_id
+from app.db_wrappers import export, get_exports, get_export_by_id, get_styles, get_projects
 from app.utils import tag_string_to_list
 
 bp = Blueprint('exporting', __name__)
 
 @bp.route('/export', methods=('GET', 'POST'))
 def exp():
+    db = get_db()
     if request.method == "POST":
         filename = request.form.get('filename') if request.form.get('filename') else "export.json"
 
@@ -22,13 +23,14 @@ def exp():
         tags = tag_string_to_list(tags)
 
         content = request.form.get('content')
-        # style = request.form.get('style')
+        style_id = request.form.get('style_id')
+        project_id = request.form.get('project_id')
         example = request.form.get('example')
 
-        export(get_db(), filename=filename, tags=tags, content=content, example=example)
+        export(db, filename=filename, tags=tags, content=content, example=example, project_id=project_id, style_id=style_id)
         return redirect("/tasks")
 
-    return render_template('export.html')
+    return render_template('export.html', styles=get_styles(db), projects=get_projects(db))
 
 @bp.route('/exports', methods=('GET',))
 def exps():

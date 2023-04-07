@@ -3,17 +3,20 @@ html {
     background: white;
 }
 
+nav {
+    padding-bottom: .5em;
+    border-bottom: 1px black solid;
+}
+
 nav a{
     all: unset;
 }
 
 .nav-bar-text, .nav-bar-main-header {
-    padding-right: 1em;
+    padding-right: .75em;
     cursor: pointer;
-    text-decoration: underline;
 }
 
 .nav-bar-main-header {
-    font-size: 2em;
-    text-decoration: none;
+    font-size: 1.5em;
 }

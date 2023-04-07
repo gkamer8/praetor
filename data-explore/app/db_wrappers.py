@@ -1,6 +1,5 @@
 import multiprocessing
 import json
-from multiprocessing.sharedctypes import Value
 import os
 from unicodedata import name
 from app.db import SQLiteJSONEncoder
@@ -217,7 +216,7 @@ Does not include tags at the moment.
 If filename is None or "", the filename becomes "export.json"
 
 """
-def export(db, filename, tags=[], content="", example=""):
+def export(db, filename, tags=[], content="", example="", project_id=None, style_id=None):
 
     if not filename:
         filename = "export.json"
@@ -234,7 +233,7 @@ def export(db, filename, tags=[], content="", example=""):
 
     task_id = c.lastrowid
 
-    p = multiprocessing.Process(target=export_background, args=(db, task_id, filename, content, tags, example))
+    p = multiprocessing.Process(target=export_background, args=(db, task_id, filename, content, tags, example, style_id, project_id))
     p.start()
 
     sql = """
@@ -250,9 +249,9 @@ def export(db, filename, tags=[], content="", example=""):
     }
     return status
 
-def export_background(db, task_id, filename, content, tags, example):
+def export_background(db, task_id, filename, content, tags, example, style_id, project_id):
 
-    # The try catch is probably not compehensive
+    # The try catch is not compehensive
     # There should be an option for the user to check on the program itself (via its pid)
     try:
         if not example:
@@ -274,6 +273,16 @@ def export_background(db, task_id, filename, content, tags, example):
 
         args.append(content)
 
+        proj_id_query = ""
+        if project_id:
+            proj_id_query = "AND prompts.project_id = ?"
+            args.append(project_id)
+
+        style_id_query = ""
+        if style_id:
+            style_id_query = "AND prompts.style = ?"
+            args.append(style_id)
+
         # notice that in string, there is no option to put "LEFT" join on examples
         # this is beacuse we really do only want prompts with examples in this case
         sql = f"""
@@ -284,6 +293,8 @@ def export_background(db, task_id, filename, content, tags, example):
             JOIN examples ON prompts.id = examples.prompt_id AND examples.completion LIKE ?
             {tag_query_str}
             WHERE prompt_values.value LIKE ?
+            {proj_id_query}
+            {style_id_query}
             LIMIT 10
         """
         c = db.cursor()
@@ -359,7 +370,7 @@ def export_background(db, task_id, filename, content, tags, example):
         db.commit()
         print(f"Error occurred: {e}")
 
-def search_prompts(db, limit=None, offset=None, content_arg=None, example_arg=None, tags_arg=None):
+def search_prompts(db, limit=None, offset=None, content_arg=None, example_arg=None, tags_arg=None, project_id=None, style_id=None):
     
     offset = 0 if not offset else offset
     limit = 100 if not limit else limit
@@ -380,7 +391,19 @@ def search_prompts(db, limit=None, offset=None, content_arg=None, example_arg=No
                 tag_query_str += " OR "
         tag_query_str += ")"
 
-    args.extend([content_arg, limit, offset])
+    args.extend([content_arg])
+
+    proj_id_query = ""
+    if project_id:
+        proj_id_query = "AND prompts.project_id = ?"
+        args.append(project_id)
+
+    style_id_query = ""
+    if style_id:
+        style_id_query = "AND prompts.style = ?"
+        args.append(style_id)
+
+    args.extend([limit, offset])
 
     sql = f"""
         WITH main_search AS
@@ -392,6 +415,8 @@ def search_prompts(db, limit=None, offset=None, content_arg=None, example_arg=No
             {x} JOIN examples ON prompts.id = examples.prompt_id AND examples.completion LIKE ?
             {tag_query_str}
             WHERE prompt_values.value LIKE ?
+            {proj_id_query}
+            {style_id_query}
         )
         SELECT main_search.*, GROUP_CONCAT(t.value) AS tags, COUNT(*) OVER() AS total_results
         FROM main_search
@@ -472,6 +497,13 @@ def get_styles_by_project_id(db, id):
     examples = db.execute(sql, (id,))
     return examples.fetchall()
 
+def get_styles(db):
+    sql = """
+        SELECT * FROM styles ORDER BY created_at DESC
+    """
+    styles = db.execute(sql)
+    return styles.fetchall()
+
 def get_style_by_id(db, id):
     sql = """
         SELECT * FROM styles WHERE id = ?
@@ -513,7 +545,7 @@ def add_project(db, name, description):
 
 def add_style(db, idtext, format_string, completion_key, preview_key, project_id, style_keys):
     sql = """
-        INSERT INTO styles (id_text, format_string, completion_key, preview_key, project_id)
+        INSERT INTO styles (id_text, template, completion_key, preview_key, project_id)
         VALUES (?, ?, ?, ?, ?)
     """
     c = db.cursor()

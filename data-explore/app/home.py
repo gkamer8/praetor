@@ -4,7 +4,7 @@ from flask import (
     request
 )
 from app.db import get_db
-from app.db_wrappers import search_prompts
+from app.db_wrappers import get_projects, search_prompts, get_styles
 from app.utils import tag_string_to_list
 
 bp = Blueprint('home', __name__)
@@ -28,7 +28,16 @@ def manifest():
     example_arg = request.args.get("example")
     tags_arg = request.args.get("tags")
     tags_arg = tag_string_to_list(tags_arg)
+    project_id_arg = request.args.get("project_id")
+    if project_id_arg == "":
+        project_id_arg = None
+    style_id_arg = request.args.get("style_id")
+    if style_id_arg == "":
+        style_id_arg = None
 
-    prompts, total_results = search_prompts(db, limit, offset, content_arg, example_arg, tags_arg)
+    projects = get_projects(db)
+    styles = get_styles(db)
 
-    return render_template('manifest.html', prompts=prompts, page_size=limit, total_results=total_results)
+    prompts, total_results = search_prompts(db, limit, offset, content_arg, example_arg, tags_arg, project_id_arg, style_id_arg)
+
+    return render_template('manifest.html', prompts=prompts, page_size=limit, total_results=total_results, projects=projects, styles=styles)
