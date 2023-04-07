@@ -3,6 +3,10 @@ html {
     background: white;
 }
 
+html, body {
+    height: 100%;
+}
+
 nav {
     padding-bottom: .5em;
     border-bottom: 1px black solid;
@@ -19,4 +23,27 @@ nav a{
 
 .nav-bar-main-header {
     font-size: 1.5em;
+}
+
+#footer {
+    height: auto;
+    padding: 20px;
+    background-color: #f0f0f0;
+    color: #808080;
+    font-size: .75em;
+}
+
+#footer a{
+    all: unset;
+}
+
+#wrapper {
+    min-height: calc(100% + 40px);
+    display: flex;
+    flex-direction: column;
+}
+
+#page-content {
+    flex-grow: 1;
+    margin-bottom: 200px; /* minimum 200px distance from the footer */
 }

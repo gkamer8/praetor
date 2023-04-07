@@ -38,9 +38,16 @@
             }
         </script>
         <button onclick="openAdd()">Add Style</button>
-        <br/>
-        <br/>
         <div id="add-style" style="display:none">
+            <p>
+                A style is defined by its <b>format string</b>, which is text including named arguments in {curly braces}.
+                <br/><br/>
+                The <b>idtext</b> is a short name to which you can refer to the style, like `instruct` or `chat`.
+                <br/><br/>
+                The <b>preview key</b> is the named argument of your format string that will appear in the prompt manifest (viewer).
+                <br/><br/>
+                The <b>completion key</b> is the space into which your language model's completion will go.
+            </p>
             <form method="post" action="{{ url_for(request.endpoint, **request.args.copy()) }}">
                 <input type="text" placeholder="idtext" name="id_text" />
                 <br/>
@@ -57,9 +64,9 @@
                 <input type="text" value="{{ project.id }}" style="display:none" name="project_id" />
                 <button type="submit">Submit</button>
             </form>
-            <br/>
-            <br/>
         </div>
+        <br/>
+        <br/>
         <div id="add-style-errors">
             {% for error in errors %}
                 <div class="add-style-error">
